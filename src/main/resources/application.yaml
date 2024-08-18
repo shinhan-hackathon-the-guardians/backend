@@ -22,3 +22,4 @@ spring:
 
 firebase:
   admin-key-path: ${FIREBASE_ADMIN_KEY_DIR}/${FIREBASE_ADMIN_KEY_NAME}
+  app-name: ${FIREBASE_APP_NAME}
