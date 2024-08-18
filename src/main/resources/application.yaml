@@ -19,3 +19,6 @@ spring:
 
   jackson:
     property-naming-strategy: SNAKE_CASE
+
+firebase:
+  admin-key-path: ${FIREBASE_ADMIN_KEY_DIR}/${FIREBASE_ADMIN_KEY_NAME}
