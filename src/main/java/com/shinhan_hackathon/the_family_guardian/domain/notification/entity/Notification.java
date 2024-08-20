@@ -1,6 +1,6 @@
 package com.shinhan_hackathon.the_family_guardian.domain.notification.entity;
 
-import com.shinhan_hackathon.the_family_guardian.domain.transaction.entity.Transaction;
+import com.shinhan_hackathon.the_family_guardian.domain.transaction.entity.TransactionRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 
 import jakarta.persistence.Column;
@@ -35,7 +35,7 @@ public class Notification {
 
 	@OneToOne
 	@JoinColumn(name = "transaction_id", nullable = false)
-	private Transaction transaction;
+	private TransactionRequest transaction;
 
 	@Column(nullable = false, length = 50)
 	private String source; // 알림 종류 : 출금 제한, 결제 한도
@@ -50,7 +50,7 @@ public class Notification {
 	private boolean requiresResponse; // 응답이 필요한 알림인지
 
 	@Builder
-	public Notification(User user, Transaction transaction, String source, String title, String body,
+	public Notification(User user, TransactionRequest transaction, String source, String title, String body,
 						boolean requiresResponse) {
 		this.user = user;
 		this.transaction = transaction;

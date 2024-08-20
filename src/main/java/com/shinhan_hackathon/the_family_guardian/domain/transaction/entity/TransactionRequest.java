@@ -21,7 +21,10 @@ import lombok.ToString;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @ToString
-public class Transaction {
+public class TransactionRequest {
+
+    // TODO: 제공되는 API에 맞게 수정할 필요 있음
+    // TODO: 현재 TransactionRequest에 대해 승인된 개수 보관 필요, approvedCount 필드 사용?
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,8 +46,10 @@ public class Transaction {
     @Column(nullable = false, length = 20)
     private String status;
 
+    private int approveCount; // 승인된 요청 횟수
+
     @Builder
-    public Transaction(User user, String transactionType, Long amount, Timestamp timestamp, String status) {
+    public TransactionRequest(User user, String transactionType, Long amount, Timestamp timestamp, String status) {
         this.user = user;
         this.transactionType = transactionType;
         this.amount = amount;
