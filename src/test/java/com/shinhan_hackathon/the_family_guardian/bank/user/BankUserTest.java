@@ -1,9 +1,12 @@
 package com.shinhan_hackathon.the_family_guardian.bank.user;
 
 import com.google.gson.Gson;
+import com.shinhan_hackathon.the_family_guardian.bank.account.AccountService;
 import com.shinhan_hackathon.the_family_guardian.bank.util.BankUtil;
 import java.util.HashMap;
 import java.util.Map;
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,9 +22,11 @@ import org.springframework.web.client.RestTemplate;
 
 @ExtendWith(SpringExtension.class)
 @Slf4j
+@RequiredArgsConstructor
 public class BankUserTest {
     private MockMvc mockMvc;
     private RestTemplate restTemplate = new RestTemplate();
+    private final AccountService accountService = new AccountService();
 
     //    private Header header;
     private String apiName; // API 이름
@@ -36,7 +41,7 @@ public class BankUserTest {
     private Map<String, String> header;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         restTemplate = new RestTemplate();
 
         apiName = "inquireDemandDepositAccountList";
@@ -65,14 +70,14 @@ public class BankUserTest {
 
     @Test
     @DisplayName("헤더_테스트")
-    public void test() {
+    void test() {
         log.info("{}", header);
         System.out.println(header);
     }
 
     @Test
     @DisplayName("계좌_생성")
-    public void createAccount() throws Exception {
+    void createAccount() throws Exception {
         String url = "/";
 //        mockMvc.perform(post(url))
 //                .andExpect(status().isOk())
@@ -83,24 +88,7 @@ public class BankUserTest {
 
     @Test
     @DisplayName("계좌_목록_조회")
-    public void inquireAccountList() throws Exception {
-        String url = "https://finopenapi.ssafy.io/ssafy/api/v1/edu/demandDeposit/inquireDemandDepositAccountList";
-
-        // 최상위 객체로 감싸기
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("Header", header);
-
-        // HTTP 헤더 설정
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        // 요청 본문 설정
-        HttpEntity<String> requestEntity = new HttpEntity<>(new Gson().toJson(requestBody), headers);
-
-        // REST API 호출
-        ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
-
-        // 응답 출력
-        System.out.println(response.getBody());
+    void inquireAccountList() throws Exception {
+        accountService.inquireAccountList();
     }
 }
