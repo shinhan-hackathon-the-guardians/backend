@@ -17,15 +17,16 @@ public class Family {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(length = 50 ,nullable = false)
     private String name;
 
+    @Column(length = 100)
     private String description;
 
     @Column(nullable = false)
-    private int approvalRequirement;
+    private int approvalRequirement = 1; // 승인 요구 가디언 수
 
-    @OneToMany(mappedBy = "family", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "family")
     private List<User> users;
 
     @Builder

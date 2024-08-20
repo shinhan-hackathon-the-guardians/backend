@@ -21,7 +21,7 @@ import lombok.ToString;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @ToString
-public class Approval {
+public class Approval { // 패밀리 가입 요청
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,17 +35,13 @@ public class Approval {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(length = 20)
-    private String relationship;
-
-    @Column(nullable = false, columnDefinition = "boolean default false")
-    private boolean accepted;
+    @Column(nullable = false, columnDefinition = "varchar(10) default 'waiting'")
+    private String accepted; // accepted == true 이면,
 
     @Builder
-    public Approval(Family family, User user, String relationship, boolean accepted) {
+    public Approval(Family family, User user, String accepted) {
         this.family = family;
         this.user = user;
-        this.relationship = relationship;
         this.accepted = accepted;
     }
 }
