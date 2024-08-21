@@ -1,11 +1,33 @@
 package com.shinhan_hackathon.the_family_guardian.bank.util;
 
+import com.shinhan_hackathon.the_family_guardian.bank.dto.Header;
+import io.github.cdimascio.dotenv.Dotenv;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
 
 public class BankUtil {
+
+    private static final String apiKey;
+    private static final String userKey;
+
+    static {
+        Dotenv dotenv = Dotenv.load();
+        apiKey = dotenv.get("API_KEY");
+        userKey = dotenv.get("USER_KEY");
+    }
+
+    public static Header createHeader(String apiName) {
+        String apiServiceCode = apiName;
+
+        return Header.builder()
+                .apiName(apiName)
+                .apiServiceCode(apiServiceCode)
+                .apiKey(apiKey)
+                .userKey(userKey)
+                .build();
+    }
 
     // 현재 날짜를 YYYYMMDD 형식으로 반환하는 메소드
     public static String generateTransmissionDate() {
