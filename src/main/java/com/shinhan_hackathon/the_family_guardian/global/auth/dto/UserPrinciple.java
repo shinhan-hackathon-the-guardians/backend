@@ -10,12 +10,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class UserPrinciple implements UserDetails {
-    private final User user;
-
-    public UserPrinciple(User user) {
-        this.user = user;
-    }
+public record UserPrinciple (
+        User user
+) implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
