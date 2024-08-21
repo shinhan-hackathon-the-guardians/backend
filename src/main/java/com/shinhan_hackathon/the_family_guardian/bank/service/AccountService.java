@@ -43,7 +43,9 @@ public class AccountService {
     private static final String BASE_URL = "https://finopenapi.ssafy.io/ssafy/api/v1/edu/demandDeposit/";
     private final RestClient restClient = RestClient.create();
 
-    // TODO: 반환값 DTO 형태로 반환할 것, 필요할지 Test 코드로 단순 실행할지는 추가적 고민이 필요함
+    // TODO: 반환값 DTO 형태로 반환할 것(완료)
+    // TODO: 필요한 입력값을 받아 반환하는 코드로 변경할 것
+    // TODO: Test Code에서 올바른 입력값으로 호출
 
     // TODO: 2.4.1 상품 등록 : 은행별 수시입출금 상품을 등록
     public DemandDepositCreationResponse createDemandDeposit() {
