@@ -21,7 +21,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User Not Found"));
 
-        if (!StringUtils.hasText(user.getAuthority())) {
+        if (user.getRole() == null) {
             throw new UsernameNotFoundException("User Authority Not Found");
         }
 
