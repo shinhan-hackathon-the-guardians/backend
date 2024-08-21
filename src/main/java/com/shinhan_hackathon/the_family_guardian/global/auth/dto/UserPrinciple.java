@@ -24,10 +24,6 @@ public record UserPrinciple (
 
     @Override
     public String getUsername() {
-        return user.getUsername();
-    }
-
-    public Long getId() {
-        return user.getId();
+        return String.valueOf(user.getId());
     }
 }
