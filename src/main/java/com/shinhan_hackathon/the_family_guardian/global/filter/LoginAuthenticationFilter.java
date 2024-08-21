@@ -41,7 +41,7 @@ public class LoginAuthenticationFilter extends AbstractAuthenticationProcessingF
         ObjectMapper objectMapper = new ObjectMapper();
         LoginRequest loginRequest = objectMapper.readValue(inputStream, LoginRequest.class);
 
-        UsernamePasswordAuthenticationToken unauthenticatedToken = UsernamePasswordAuthenticationToken.unauthenticated(loginRequest.email(), loginRequest.password());
+        UsernamePasswordAuthenticationToken unauthenticatedToken = UsernamePasswordAuthenticationToken.unauthenticated(loginRequest.username(), loginRequest.password());
         return this.getAuthenticationManager().authenticate(unauthenticatedToken);
     }
 }

@@ -1,14 +1,12 @@
 package com.shinhan_hackathon.the_family_guardian.global.auth.dto;
 
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
-import org.springframework.security.config.core.GrantedAuthorityDefaults;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 public record UserPrinciple (
         User user

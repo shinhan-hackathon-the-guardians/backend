@@ -58,9 +58,10 @@ public class WebSecurityConfig {
                     session.invalidSessionUrl(INVALID_SESSION_REDIRECT_URL);
                 });
 
+        // TODO : root path 삭제
         http
                 .authorizeHttpRequests(request -> {
-                    request.requestMatchers("/auth/**", "/favicon.ico", "/error").permitAll();
+                    request.requestMatchers("/**", "/auth/**", "/favicon.ico", "/error").permitAll();
                     request.anyRequest().authenticated();
                 });
 
