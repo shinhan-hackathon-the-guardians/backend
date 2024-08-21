@@ -29,9 +29,13 @@ public class QuestionBank {
     @Column(nullable = false, length = 10)
     private String answer;
 
+    @Column(nullable = false)
+    private String explanation;
+
     @Builder
-    public QuestionBank(String question, String answer) {
+    public QuestionBank(String question, String answer, String explanation) {
         this.question = question;
         this.answer = answer;
+        this.explanation = explanation;
     }
 }
