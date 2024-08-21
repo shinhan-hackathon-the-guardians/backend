@@ -1,6 +1,6 @@
-package com.shinhan_hackathon.the_family_guardian.bank.user;
+package com.shinhan_hackathon.the_family_guardian.bank.account;
 
-import com.shinhan_hackathon.the_family_guardian.bank.account.AccountService;
+import com.shinhan_hackathon.the_family_guardian.bank.service.AccountService;
 import com.shinhan_hackathon.the_family_guardian.bank.util.BankUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -75,19 +75,26 @@ public class BankAccountTest {
     @Test
     @DisplayName("8_계좌_츨금")
     void updateAccountWithdrawal() {
-        log.info("{}", accountService.updateAccountWithdrawal());
+        String accountNo = "0885135436359049";
+        Long transactionBalance = 100000L;
+        log.info("{}", accountService.updateAccountWithdrawal(accountNo, transactionBalance));
     }
 
     @Test
     @DisplayName("9_계좌_입금")
     void updateAccountDeposit() {
-        log.info("{}", accountService.updateAccountDeposit());
+        String accountNo = "0885135436359049";
+        Long transactionBalance = 100000L;
+        log.info("{}", accountService.updateAccountDeposit(accountNo, transactionBalance));
     }
 
     @Test
     @DisplayName("10_계좌_이체")
     void updateAccountTransfer() {
-        log.info("{}", accountService.updateAccountTransfer());
+        String depositAccountNo = "0884755843206405";
+        String withdrawalAccountNo = "0885135436359049";
+        Long transactionBalance = 10000L;
+        log.info("{}", accountService.updateAccountTransfer(depositAccountNo, withdrawalAccountNo, transactionBalance));
     }
 
     @Test
@@ -99,18 +106,23 @@ public class BankAccountTest {
     @Test
     @DisplayName("12_계좌_거래_내역_조회")
     void inquireAccountTransactionHistoryList() {
-        log.info("{}", accountService.inquireTransactionHistoryList());
+        String accountNo = "0885135436359049";
+        log.info("{}", accountService.inquireTransactionHistoryList(accountNo));
     }
 
     @Test
     @DisplayName("13_계좌_거래_내역_단건_조회")
     void inquireAccountTransactionHistory() {
-        log.info("{}", accountService.inquireTransactionHistory());
+        String accountNo = "0885135436359049";
+        Long transactionUniqueNo = 2210L;
+        log.info("{}", accountService.inquireTransactionHistory(accountNo, transactionUniqueNo));
     }
 
     @Test
     @DisplayName("14_계좌_해지")
     void deleteAccount() {
-        log.info("{}",accountService.deleteAccount());
+        String accountNo = "0881201572623750";
+        String refundAccountNo = "0885135436359049";
+        log.info("{}",accountService.deleteAccount(accountNo, refundAccountNo));
     }
 }
