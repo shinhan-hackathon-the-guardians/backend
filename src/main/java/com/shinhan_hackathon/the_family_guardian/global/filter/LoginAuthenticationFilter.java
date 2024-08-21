@@ -12,6 +12,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.context.SecurityContextRepository;
 
 import java.io.IOException;
 
@@ -19,14 +21,17 @@ public class LoginAuthenticationFilter extends AbstractAuthenticationProcessingF
 
     public LoginAuthenticationFilter(
             String defaultFilterProcessesUrl,
-            AuthenticationManager authenticationManager
+            AuthenticationManager authenticationManager,
+            SecurityContextRepository securityContextRepository,
+            AuthenticationSuccessHandler authenticationSuccessHandler
     ) {
         super(defaultFilterProcessesUrl, authenticationManager);
+        super.setSecurityContextRepository(securityContextRepository);
+        super.setAuthenticationSuccessHandler(authenticationSuccessHandler);
     }
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
-        // extract login dto
         String method = request.getMethod();
         if (method == null || !method.equals(HttpMethod.POST.name())) {
             throw new RuntimeException();
