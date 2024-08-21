@@ -2,9 +2,11 @@ package com.shinhan_hackathon.the_family_guardian.global.config;
 
 import com.shinhan_hackathon.the_family_guardian.global.auth.service.UserDetailsServiceImpl;
 import com.shinhan_hackathon.the_family_guardian.global.auth.service.handler.AuthenticationSuccessHandlerImpl;
+import com.shinhan_hackathon.the_family_guardian.global.auth.service.handler.LogoutHandlerDecorator;
 import com.shinhan_hackathon.the_family_guardian.global.filter.LoginAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -15,6 +17,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.context.DelegatingSecurityContextRepository;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
@@ -23,9 +28,9 @@ import org.springframework.security.web.context.SecurityContextRepository;
 @EnableWebSecurity
 @Configuration
 public class WebSecurityConfig {
-
-    public static final String LOGIN_REQUEST_URL = "/auth/login";
-    public static final String INVALID_SESSION_REDIRECT_URL = "/login";
+    private final String LOGIN_URL = "/auth/login";
+    private final String LOGOUT_URL = "/auth/logout";
+    private final String INVALID_SESSION_REDIRECT_URL = "/login";
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, UserDetailsServiceImpl userDetailsServiceImpl, PasswordEncoder passwordEncoder) throws Exception {
@@ -39,12 +44,17 @@ public class WebSecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.disable())
-                .formLogin(formLogin -> formLogin.disable());
+                .formLogin(formLogin -> formLogin.disable())
+                .logout(logout -> {
+                    logout.logoutUrl(LOGOUT_URL);
+                    logout.addLogoutHandler(logoutHandler());
+                    logout.logoutSuccessHandler(logoutSuccessHandler());
+                });
 
         http
                 .headers(header -> header.frameOptions(fo -> fo.disable()).disable())
                 .sessionManagement(session -> {
-                    session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS);
+                    session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
                     session.invalidSessionUrl(INVALID_SESSION_REDIRECT_URL);
                 });
 
@@ -64,7 +74,7 @@ public class WebSecurityConfig {
     }
 
     AbstractAuthenticationProcessingFilter abstractAuthenticationProcessingFilter(AuthenticationManager authenticationManager) {
-        return new LoginAuthenticationFilter(LOGIN_REQUEST_URL, authenticationManager, securityContextRepository(), authenticationSuccessHandler());
+        return new LoginAuthenticationFilter(LOGIN_URL, authenticationManager, securityContextRepository(), authenticationSuccessHandler());
     }
 
     AuthenticationSuccessHandler authenticationSuccessHandler() {
@@ -76,5 +86,13 @@ public class WebSecurityConfig {
                 new HttpSessionSecurityContextRepository(),
                 new RequestAttributeSecurityContextRepository()
         );
+    }
+
+    LogoutHandler logoutHandler() {
+        return new LogoutHandlerDecorator();
+    }
+
+    LogoutSuccessHandler logoutSuccessHandler() {
+        return new HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK);
     }
 }
