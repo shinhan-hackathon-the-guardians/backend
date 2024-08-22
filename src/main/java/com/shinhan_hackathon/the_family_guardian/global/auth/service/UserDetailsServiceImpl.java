@@ -2,7 +2,7 @@ package com.shinhan_hackathon.the_family_guardian.global.auth.service;
 
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import com.shinhan_hackathon.the_family_guardian.domain.user.repository.UserRepository;
-import com.shinhan_hackathon.the_family_guardian.global.auth.dto.UserPrinciple;
+import com.shinhan_hackathon.the_family_guardian.global.auth.dto.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -25,6 +25,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             throw new UsernameNotFoundException("User Authority Not Found");
         }
 
-        return new UserPrinciple(user);
+        return new UserPrincipal(user);
     }
 }
