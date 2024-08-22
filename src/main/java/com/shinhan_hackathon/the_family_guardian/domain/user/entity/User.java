@@ -32,7 +32,7 @@ public class User {
 	private String name;
 
 	@Column(length = 10)
-	private String gender;
+	private Gender gender;
 
 	@Temporal(TemporalType.DATE)
 	private Date birthDate;
@@ -60,7 +60,7 @@ public class User {
 
 
 	@Builder
-	public User(String username, String password, String name, String gender, Date birthDate, String phone,
+	public User(String username, String password, String name, Gender gender, Date birthDate, String phone,
 				String accountNumber, Level level, Family family, String relationship, Role role) {
 		this.username = username;
 		this.password = password;
