@@ -1,5 +1,6 @@
 package com.shinhan_hackathon.the_family_guardian.domain.transaction.service;
 
+import com.shinhan_hackathon.the_family_guardian.domain.user.service.UserService;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
@@ -19,16 +20,14 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class TransactionService {
-	private final UserRepository userRepository;
+	private final UserService userService;
 	private final TransactionRepository transactionRepository;
 	private final AccountService accountService;
 
 	public List<TransactionResponse> getTransactionHistory(Long userId, Pageable pageable) {
 		log.info("TransactionService.getTransactionHistory() is called.");
-		User user = userRepository.findById(userId).orElseThrow(() ->
-			new RuntimeException("Failed to found user."));
 
-		String accountNo = user.getAccountNumber();
+		String accountNo = userService.getAccountNumber(userId);
 		AccountTransactionHistoryListResponse accountTransactionHistoryListResponse =
 			accountService.inquireTransactionHistoryList(accountNo);
 
