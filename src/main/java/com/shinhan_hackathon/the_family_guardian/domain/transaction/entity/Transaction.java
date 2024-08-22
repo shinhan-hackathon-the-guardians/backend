@@ -1,5 +1,7 @@
 package com.shinhan_hackathon.the_family_guardian.domain.transaction.entity;
 
+import com.shinhan_hackathon.the_family_guardian.bank.dto.response.AccountTransactionHistoryListResponse;
+import com.shinhan_hackathon.the_family_guardian.bank.dto.response.AccountTransactionHistoryResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,10 +23,10 @@ import lombok.ToString;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @ToString
-public class TransactionRequest {
+public class Transaction {
 
     // TODO: 제공되는 API에 맞게 수정할 필요 있음
-    // TODO: 현재 TransactionRequest에 대해 승인된 개수 보관 필요, approvedCount 필드 사용?
+    // TODO: 현재 Notification의 승인 요청 결과에 대해 승인된 개수 보관 필요, approvedCount 필드 사용?
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,11 +51,17 @@ public class TransactionRequest {
     private int approveCount; // 승인된 요청 횟수
 
     @Builder
-    public TransactionRequest(User user, String transactionType, Long amount, Timestamp timestamp, String status) {
+    public Transaction(User user, String transactionType, Long amount, Timestamp timestamp, String status) {
         this.user = user;
         this.transactionType = transactionType;
         this.amount = amount;
         this.timestamp = timestamp;
         this.status = status;
+    }
+
+    public static Transaction toTransaction(AccountTransactionHistoryListResponse.Rec.Transaction transaction) {
+        return Transaction.builder()
+
+            .build();
     }
 }
