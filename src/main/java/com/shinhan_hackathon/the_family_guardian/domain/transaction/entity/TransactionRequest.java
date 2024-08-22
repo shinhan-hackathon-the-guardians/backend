@@ -55,5 +55,6 @@ public class TransactionRequest {
         this.amount = amount;
         this.timestamp = timestamp;
         this.status = status;
+        this.approveCount = 0;
     }
 }
