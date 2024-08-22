@@ -21,6 +21,13 @@ spring:
   jackson:
     property-naming-strategy: SNAKE_CASE
 
+  ai:
+    vertex:
+      ai:
+        gemini:
+          project-id: ${project-id}
+          location: ${location}
+
 firebase:
   admin-key-path: ${FIREBASE_ADMIN_KEY_DIR}/${FIREBASE_ADMIN_KEY_NAME}
   app-name: ${FIREBASE_APP_NAME}
