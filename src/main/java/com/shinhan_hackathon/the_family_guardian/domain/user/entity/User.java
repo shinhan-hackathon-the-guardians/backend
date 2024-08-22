@@ -4,16 +4,7 @@ import java.util.Date;
 
 import com.shinhan_hackathon.the_family_guardian.domain.family.entity.Family;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -53,7 +44,8 @@ public class User {
 	private String accountNumber;
 
 	@Column(length = 20, nullable = false, columnDefinition = "varchar(20) default 'supporter'")
-	private String role;
+	@Enumerated(EnumType.STRING)
+	private Level level;
 
 	@ManyToOne
 	@JoinColumn(name = "family_id", nullable = true)
@@ -63,12 +55,13 @@ public class User {
 	private String relationship; // 가족 관계
 
 	@Column(length = 20, nullable = false, columnDefinition = "varchar(20) default 'member'")
-	private String authority; // 패밀리 내부 권한: 'member' 또는 'guardian'
+	@Enumerated(EnumType.STRING)
+	private Role role; // 패밀리 내부 권한: 'member' 또는 'guardian'
 
 
 	@Builder
 	public User(String username, String password, String name, String gender, Date birthDate, String phone,
-				String accountNumber, String role, Family family, String relationship, String authority) {
+				String accountNumber, Level level, Family family, String relationship, Role role) {
 		this.username = username;
 		this.password = password;
 		this.name = name;
@@ -76,9 +69,9 @@ public class User {
 		this.birthDate = birthDate;
 		this.phone = phone;
 		this.accountNumber = accountNumber;
-		this.role = role;
+		this.level = level;
 		this.family = family;
 		this.relationship = relationship;
-		this.authority = authority;
+		this.role = role;
 	}
 }
