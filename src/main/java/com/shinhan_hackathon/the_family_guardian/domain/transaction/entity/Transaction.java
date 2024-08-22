@@ -26,7 +26,7 @@ import lombok.ToString;
 public class Transaction {
 
     // TODO: 제공되는 API에 맞게 수정할 필요 있음
-    // TODO: 현재 TransactionRequest에 대해 승인된 개수 보관 필요, approvedCount 필드 사용?
+    // TODO: 현재 Notification의 승인 요청 결과에 대해 승인된 개수 보관 필요, approvedCount 필드 사용?
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
