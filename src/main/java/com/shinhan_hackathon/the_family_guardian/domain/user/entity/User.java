@@ -1,5 +1,6 @@
 package com.shinhan_hackathon.the_family_guardian.domain.user.entity;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 import com.shinhan_hackathon.the_family_guardian.domain.family.entity.Family;
@@ -35,7 +36,7 @@ public class User {
 	private Gender gender;
 
 	@Temporal(TemporalType.DATE)
-	private Date birthDate;
+	private LocalDate birthDate;
 
 	@Column(unique = true, nullable = false, length = 20)
 	private String phone;
@@ -60,7 +61,7 @@ public class User {
 
 
 	@Builder
-	public User(String username, String password, String name, Gender gender, Date birthDate, String phone,
+	public User(String username, String password, String name, Gender gender, LocalDate birthDate, String phone,
 				String accountNumber, Level level, Family family, String relationship, Role role) {
 		this.username = username;
 		this.password = password;
