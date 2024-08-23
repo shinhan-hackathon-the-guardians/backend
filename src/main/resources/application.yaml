@@ -2,7 +2,7 @@ spring:
   config:
     import: optional:file:.env[.properties]
   application:
-    name: the-family-guardian
+    name: the-family-guardian, wise-trainer-417001
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -21,6 +21,17 @@ spring:
   jackson:
     property-naming-strategy: SNAKE_CASE
 
+  ai:
+    vertex:
+      ai:
+        gemini:
+          project-id: ${PROJECT_ID}
+          location: ${LOCATION}
+
 firebase:
   admin-key-path: ${FIREBASE_ADMIN_KEY_DIR}/${FIREBASE_ADMIN_KEY_NAME}
   app-name: ${FIREBASE_APP_NAME}
+
+google:
+  application:
+    credentials: ${GOOGLE_APPLICATION_CREDENTIALS}
