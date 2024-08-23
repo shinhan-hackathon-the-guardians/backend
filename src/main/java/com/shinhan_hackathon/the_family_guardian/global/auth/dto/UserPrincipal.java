@@ -7,7 +7,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public record UserPrinciple (
+public record UserPrincipal(
         User user
 ) implements UserDetails {
 

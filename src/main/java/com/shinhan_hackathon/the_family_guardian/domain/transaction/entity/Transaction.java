@@ -57,6 +57,7 @@ public class Transaction {
         this.amount = amount;
         this.timestamp = timestamp;
         this.status = status;
+        this.approveCount = 0;
     }
 
     public static Transaction toTransaction(AccountTransactionHistoryListResponse.Rec.Transaction transaction) {
