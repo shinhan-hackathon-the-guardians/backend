@@ -13,7 +13,8 @@ public record SignupRequest(
         Gender gender,
         LocalDate birthDate,
         String phoneNumber,
-        String accountNumber
+        String accountNumber,
+        String csrfToken
 ) {
 
     public User toUserEntity() {
