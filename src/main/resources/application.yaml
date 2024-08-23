@@ -35,3 +35,8 @@ firebase:
 google:
   application:
     credentials: ${GOOGLE_APPLICATION_CREDENTIALS}
+
+redis:
+  host: ${REDIS_HOST}
+  port: ${REDIS_PORT}
+  password: ${REDIS_PASSWORD}
