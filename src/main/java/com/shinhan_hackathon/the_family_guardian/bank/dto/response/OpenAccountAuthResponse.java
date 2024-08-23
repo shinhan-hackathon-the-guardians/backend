@@ -10,11 +10,11 @@ public record OpenAccountAuthResponse(
         HeaderResponse header,
 
         @JsonProperty("REC")
-        List<Rec> rec
+        Rec rec
 ) {
 
-    record Rec (
-            String transactionUniqueNo,
+    public record Rec (
+            Long transactionUniqueNo,
             String accountNo
     ) {
     }
