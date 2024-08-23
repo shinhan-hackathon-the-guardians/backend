@@ -1,6 +1,7 @@
 package com.shinhan_hackathon.the_family_guardian.bank.util;
 
 import com.shinhan_hackathon.the_family_guardian.bank.dto.Header;
+import com.shinhan_hackathon.the_family_guardian.bank.dto.HeaderResponse;
 import io.github.cdimascio.dotenv.Dotenv;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -11,6 +12,8 @@ public class BankUtil {
 
     private static final String apiKey;
     private static final String userKey;
+
+    private static final String SUCCESS_CODE = "H0000";
 
     static {
         Dotenv dotenv = Dotenv.load();
@@ -56,5 +59,13 @@ public class BankUtil {
 
         // 최종 코드 생성
         return dateTime + sequenceStr;
+    }
+
+    public static void validateBankApiResponse(HeaderResponse headerResponse) {
+        String responseCode = headerResponse.getResponseCode();
+
+        if (!SUCCESS_CODE.equals(responseCode)) {
+            throw new RuntimeException("은행 API 요청 실패. 올바르지 않은 응답.");
+        }
     }
 }
