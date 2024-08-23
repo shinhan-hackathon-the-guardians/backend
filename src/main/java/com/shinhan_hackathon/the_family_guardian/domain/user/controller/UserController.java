@@ -1,6 +1,6 @@
 package com.shinhan_hackathon.the_family_guardian.domain.user.controller;
 
-import com.shinhan_hackathon.the_family_guardian.domain.user.dto.SignupRequest;
+import com.shinhan_hackathon.the_family_guardian.domain.user.dto.*;
 import com.shinhan_hackathon.the_family_guardian.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +19,24 @@ public class UserController {
     public ResponseEntity<?> signup(@RequestBody SignupRequest signupRequest) {
 
         userService.createUser(signupRequest);
-        return ResponseEntity.ok("dd");
+        return ResponseEntity.ok("회원가입 성공");
     }
+
+    @PostMapping("/accountAuthCode")
+    public ResponseEntity<AccountAuthResponse> sendAccountAuthCode(@RequestBody AccountAuthSendRequest accountAuthSendRequest) {
+
+        AccountAuthResponse accountAuthResponse = userService.openAccountAuth(accountAuthSendRequest.accountNumber());
+        return ResponseEntity.ok(accountAuthResponse);
+    }
+
+    @PostMapping("/accountAuthCode/check")
+    public ResponseEntity<AccountAuthResponse> checkAccountAuthCode(@RequestBody AccountAuthCheckRequest accountAuthCheckRequest) {
+        AccountAuthResponse accountAuthSendResponse = userService.checkAccountAuth(
+                accountAuthCheckRequest.accountNumber(),
+                accountAuthCheckRequest.authCode(),
+                accountAuthCheckRequest.csrfToken()
+        );
+        return ResponseEntity.ok(accountAuthSendResponse);
+    }
+
 }
