@@ -5,6 +5,7 @@ import com.shinhan_hackathon.the_family_guardian.domain.family.dto.CreateFamilyR
 import com.shinhan_hackathon.the_family_guardian.domain.family.dto.FamilyInfoResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.family.entity.Family;
 import com.shinhan_hackathon.the_family_guardian.domain.family.repository.FamilyRepository;
+import com.shinhan_hackathon.the_family_guardian.domain.user.entity.Role;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import com.shinhan_hackathon.the_family_guardian.domain.user.repository.UserRepository;
 import com.shinhan_hackathon.the_family_guardian.domain.user.service.UserService;
@@ -49,6 +50,7 @@ public class FamilyService {
 
         Family savedFamily = familyRepository.save(family);
         user.updateFamily(savedFamily);
+        user.updateRole(Role.OWNER);
         authUtil.updateAuthentication(user);
 
         return new CreateFamilyResponse(

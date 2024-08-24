@@ -80,4 +80,9 @@ public class User {
 		this.family = family;
 		return this.family;
 	}
+
+	public Role updateRole(Role role) {
+		this.role = role;
+		return this.role;
+	}
 }
