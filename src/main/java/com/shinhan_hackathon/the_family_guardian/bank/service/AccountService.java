@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 
 @Slf4j
@@ -97,9 +98,11 @@ public class AccountService {
     }
 
     // TODO: 2.4.5 계좌 조회 단건 : 특정 계좌에 대한 정보를 조회
-    public AccountResponse inquireAccount() {
+    public AccountResponse inquireAccount(String accountNo) {
         String apiName = "inquireDemandDepositAccount";
-        String accountNo = "0885135436359049";
+        if (!StringUtils.hasText(accountNo)) {
+            accountNo = "0885135436359049";
+        }
         AccountRequest accountRequest = AccountRequest.builder()
                 .header(BankUtil.createHeader(apiName))
                 .accountNo(accountNo)
@@ -109,9 +112,11 @@ public class AccountService {
     }
 
     // TODO: 2.4.6 예금주 조회 : 계좌에 대한 예금주명 조회
-    public AccountHolderNameResponse inquireAccountHolderName() {
+    public AccountHolderNameResponse inquireAccountHolderName(String accountNo) {
         String apiName = "inquireDemandDepositAccountHolderName";
-        String accountNo = "0885135436359049";
+        if (!StringUtils.hasText(accountNo)) {
+            accountNo = "0885135436359049";
+        }
         AccountHolderNameRequest accountHolderNameRequest = AccountHolderNameRequest.builder()
                 .header(BankUtil.createHeader(apiName))
                 .accountNo(accountNo)

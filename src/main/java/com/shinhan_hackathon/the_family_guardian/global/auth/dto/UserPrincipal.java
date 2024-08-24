@@ -28,4 +28,8 @@ public record UserPrincipal(
     public String getUsername() {
         return String.valueOf(user.getId());
     }
+
+    public String getAccountNumber() {
+        return user.getAccountNumber();
+    }
 }

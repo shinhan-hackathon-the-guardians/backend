@@ -57,13 +57,13 @@ public class BankAccountTest {
     @Test
     @DisplayName("5_계좌_단건_조회")
     void inquireAccount() {
-        log.info("{}", accountService.inquireAccount());
+        log.info("{}", accountService.inquireAccount(null));
     }
 
     @Test
     @DisplayName("6_예금주_조회")
     void inquireAccountHolderName() {
-        log.info("{}", accountService.inquireAccountHolderName());
+        log.info("{}", accountService.inquireAccountHolderName(null));
     }
 
     @Test
