@@ -75,4 +75,9 @@ public class User {
 		this.relationship = relationship;
 		this.role = role;
 	}
+
+	public Family updateFamily(Family family) {
+		this.family = family;
+		return this.family;
+	}
 }

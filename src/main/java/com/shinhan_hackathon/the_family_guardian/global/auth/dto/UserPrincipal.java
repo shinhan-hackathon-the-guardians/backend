@@ -1,5 +1,6 @@
 package com.shinhan_hackathon.the_family_guardian.global.auth.dto;
 
+import com.shinhan_hackathon.the_family_guardian.domain.family.entity.Family;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -31,5 +32,9 @@ public record UserPrincipal(
 
     public String getAccountNumber() {
         return user.getAccountNumber();
+    }
+
+    public Family getFamily() {
+        return user.getFamily();
     }
 }
