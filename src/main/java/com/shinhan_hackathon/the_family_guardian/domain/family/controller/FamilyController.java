@@ -2,10 +2,14 @@ package com.shinhan_hackathon.the_family_guardian.domain.family.controller;
 
 import com.shinhan_hackathon.the_family_guardian.domain.family.dto.AddFamilyMemberRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.family.dto.CreateFamilyRequest;
+import com.shinhan_hackathon.the_family_guardian.domain.family.dto.CreateFamilyResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.family.dto.UpdateFamilyRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.family.service.FamilyService;
+import com.shinhan_hackathon.the_family_guardian.domain.user.entity.Level;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,8 +25,14 @@ public class FamilyController {
     }
 
     @PostMapping
-    public ResponseEntity createFamily(@RequestBody CreateFamilyRequest createFamilyRequest) {
-        return ResponseEntity.ok(createFamilyRequest);
+    public ResponseEntity<CreateFamilyResponse> createFamily(@RequestBody CreateFamilyRequest createFamilyRequest) {
+        SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .filter(authority -> authority.getAuthority().equals(Level.GUARDIAN.name()))
+                .findFirst()
+                .orElseThrow(() -> new AccessDeniedException("접근 권한이 없습니다."));
+
+        CreateFamilyResponse createFamilyResponse = familyService.registerFamily(createFamilyRequest);
+        return ResponseEntity.ok(createFamilyResponse);
     }
 
     @PutMapping("/{family_id}")
