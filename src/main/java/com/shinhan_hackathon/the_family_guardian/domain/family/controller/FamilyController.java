@@ -1,9 +1,6 @@
 package com.shinhan_hackathon.the_family_guardian.domain.family.controller;
 
-import com.shinhan_hackathon.the_family_guardian.domain.family.dto.AddFamilyMemberRequest;
-import com.shinhan_hackathon.the_family_guardian.domain.family.dto.CreateFamilyRequest;
-import com.shinhan_hackathon.the_family_guardian.domain.family.dto.CreateFamilyResponse;
-import com.shinhan_hackathon.the_family_guardian.domain.family.dto.UpdateFamilyRequest;
+import com.shinhan_hackathon.the_family_guardian.domain.family.dto.*;
 import com.shinhan_hackathon.the_family_guardian.domain.family.service.FamilyService;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.Level;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +17,10 @@ public class FamilyController {
     private final FamilyService familyService;
 
     @GetMapping("/{family_id}")
-    public ResponseEntity getFamilyInfoById(@PathVariable(value = "family_id") Long familyId) {
-        return ResponseEntity.ok(familyId);
+    public ResponseEntity<FamilyInfoResponse> getFamilyInfoById(@PathVariable(value = "family_id") Long familyId) {
+
+        FamilyInfoResponse familyInfo = familyService.getFamilyInfo(familyId);
+        return ResponseEntity.ok(familyInfo);
     }
 
     @PostMapping
