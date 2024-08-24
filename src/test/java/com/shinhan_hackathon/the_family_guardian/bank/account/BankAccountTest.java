@@ -15,6 +15,9 @@ public class BankAccountTest {
     @Autowired
     private AccountService accountService;
 
+    @Autowired
+    private BankUtil bankUtil;
+
     @BeforeEach
     void setup() {
 
@@ -23,7 +26,7 @@ public class BankAccountTest {
     @Test
     @DisplayName("헤더_테스트")
     void test() {
-        log.info("{}", BankUtil.createHeader("apiName"));
+        log.info("{}", bankUtil.createHeader("apiName"));
     }
 
     // TODO: 각 서비스 코드들은 입력값을 받아 응답을 반환하는 구조롤 변환될 것
