@@ -38,4 +38,11 @@ public class Approval { // 패밀리 가입 요청
         this.user = user;
         this.accepted = accepted;
     }
+
+    public AcceptStatus updateAccepted(AcceptStatus acceptStatus) {
+        return this.accepted = acceptStatus;
+    }
+    public AcceptStatus updateAccepted(boolean acceptStatus) {
+        return this.accepted = acceptStatus ? AcceptStatus.ACCEPT : AcceptStatus.REFUSE;
+    }
 }
