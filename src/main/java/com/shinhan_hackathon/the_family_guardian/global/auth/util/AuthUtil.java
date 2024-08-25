@@ -8,9 +8,13 @@ import com.shinhan_hackathon.the_family_guardian.global.auth.service.UserDetails
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
+import java.util.Optional;
 
 @Component
 public class AuthUtil {
@@ -43,10 +47,16 @@ public class AuthUtil {
         return (UserPrincipal) authentication.getPrincipal();
     }
 
-    public void checkAuthority(GuardianAuthority guardianAuthority) {
-        SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                .filter(authority -> authority.getAuthority().equals(guardianAuthority.name()))
-                .findFirst()
-                .orElseThrow(() -> new AccessDeniedException("접근 권한이 없습니다."));
+    public boolean checkAuthority(GuardianAuthority... guardianAuthorities) {
+        boolean isAccessible = Arrays.stream(guardianAuthorities).anyMatch(guardianAuthority ->
+                SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                        .anyMatch(userAuthority -> guardianAuthority.name().equals(userAuthority.getAuthority()))
+        );
+
+        if (!isAccessible) {
+            throw new AccessDeniedException("접근 권한이 없습니다.");
+        }
+
+        return true;
     }
 }
