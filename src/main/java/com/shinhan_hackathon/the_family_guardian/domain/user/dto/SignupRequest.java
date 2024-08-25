@@ -1,6 +1,8 @@
 package com.shinhan_hackathon.the_family_guardian.domain.user.dto;
 
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.Gender;
+import com.shinhan_hackathon.the_family_guardian.domain.user.entity.Level;
+import com.shinhan_hackathon.the_family_guardian.domain.user.entity.Role;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 
 import java.time.LocalDate;
@@ -26,6 +28,8 @@ public record SignupRequest(
                 .birthDate(birthDate)
                 .phone(phoneNumber)
                 .accountNumber(accountNumber)
+                .level(Level.SUPPORTER)
+                .role(Role.NONE)
                 .build();
     }
 }
