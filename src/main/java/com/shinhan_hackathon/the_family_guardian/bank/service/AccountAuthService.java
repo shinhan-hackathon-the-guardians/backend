@@ -5,7 +5,6 @@ import com.shinhan_hackathon.the_family_guardian.bank.dto.request.*;
 import com.shinhan_hackathon.the_family_guardian.bank.dto.response.CheckAuthCodeResponse;
 import com.shinhan_hackathon.the_family_guardian.bank.dto.response.OpenAccountAuthResponse;
 import com.shinhan_hackathon.the_family_guardian.bank.util.BankUtil;
-import io.github.cdimascio.dotenv.Dotenv;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
