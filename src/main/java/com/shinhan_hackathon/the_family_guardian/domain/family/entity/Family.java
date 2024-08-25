@@ -48,4 +48,11 @@ public class Family {
     public Integer updateApprovalRequirement(int approvalRequirement) {
         return this.approvalRequirement = approvalRequirement;
     }
+
+    public void addUser(User user) {
+        boolean present = users.stream().anyMatch(member -> member.getId().equals(user.getId()));
+        if (!present) {
+            users.add(user);
+        }
+    }
 }
