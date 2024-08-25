@@ -34,16 +34,18 @@ public class FamilyController {
     }
 
     @PutMapping("/{family_id}")
-    public ResponseEntity updateFamily(@PathVariable(value = "family_id") Long familyId, @RequestBody UpdateFamilyRequest updateFamilyRequest) {
+    public ResponseEntity<UpdateFamilyResponse> updateFamily(@PathVariable(value = "family_id") Long familyId, @RequestBody UpdateFamilyRequest updateFamilyRequest) {
         authUtil.checkAuthority(Role.OWNER, Role.MANAGER);
 
-        familyService.updateFamily(familyId, updateFamilyRequest);
-        return ResponseEntity.ok(updateFamilyRequest);
+        UpdateFamilyResponse updateFamilyResponse = familyService.updateFamily(familyId, updateFamilyRequest);
+        return ResponseEntity.ok(updateFamilyResponse);
     }
 
     @PostMapping("/{family_id}/invite")
-    public ResponseEntity addFamilyMember(@PathVariable(value = "family_id") String family_id, @RequestBody AddFamilyMemberRequest addFamilyMemberRequest) {
-        return ResponseEntity.ok(addFamilyMemberRequest);
+    public ResponseEntity<AddFamilyMemberResponse> addFamilyMember(@PathVariable(value = "family_id") Long family_id, @RequestBody AddFamilyMemberRequest addFamilyMemberRequest) {
+        authUtil.checkAuthority(Role.OWNER);
 
+        AddFamilyMemberResponse addFamilyMemberResponse = familyService.registerMember(family_id, addFamilyMemberRequest);
+        return ResponseEntity.ok(addFamilyMemberResponse);
     }
 }
