@@ -92,6 +92,7 @@ public class ApprovalService {
             );
 
             family.addUser(user);
+            user.updateFamily(family);
             user.updateRole(Role.MEMBER);
 
             authUtil.updateAuthentication(user);
