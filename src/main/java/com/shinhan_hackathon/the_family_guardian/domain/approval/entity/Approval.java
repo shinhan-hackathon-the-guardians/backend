@@ -35,11 +35,11 @@ public class Approval { // 패밀리 가입 요청
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false, columnDefinition = "varchar(10) default 'waiting'")
-    private String accepted; // accepted == true 이면,
+    @Column(nullable = false, columnDefinition = "varchar(10) default 'PROGRESS'")
+    private AcceptStatus accepted;
 
     @Builder
-    public Approval(Family family, User user, String accepted) {
+    public Approval(Family family, User user, AcceptStatus accepted) {
         this.family = family;
         this.user = user;
         this.accepted = accepted;
