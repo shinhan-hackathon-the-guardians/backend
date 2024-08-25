@@ -35,6 +35,9 @@ public class FamilyController {
 
     @PutMapping("/{family_id}")
     public ResponseEntity updateFamily(@PathVariable(value = "family_id") Long familyId, @RequestBody UpdateFamilyRequest updateFamilyRequest) {
+        authUtil.checkAuthority(Role.OWNER, Role.MANAGER);
+
+        familyService.updateFamily(familyId, updateFamilyRequest);
         return ResponseEntity.ok(updateFamilyRequest);
     }
 
