@@ -1,5 +1,5 @@
 package com.shinhan_hackathon.the_family_guardian.domain.user.entity;
 
-public enum Level implements GuardianAuthority{
-    SUPPORTER, GUARDIAN
+public interface GuardianAuthority {
+    String name();
 }
