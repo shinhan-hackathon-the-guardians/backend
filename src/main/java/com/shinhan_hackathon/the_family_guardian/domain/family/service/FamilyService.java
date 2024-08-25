@@ -8,13 +8,10 @@ import com.shinhan_hackathon.the_family_guardian.domain.family.repository.Family
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.Role;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import com.shinhan_hackathon.the_family_guardian.domain.user.repository.UserRepository;
-import com.shinhan_hackathon.the_family_guardian.domain.user.service.UserService;
 import com.shinhan_hackathon.the_family_guardian.global.auth.dto.UserPrincipal;
 import com.shinhan_hackathon.the_family_guardian.global.auth.util.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,7 +68,7 @@ public class FamilyService {
 
         Long userFamilyId = userFamily.getId();
         if (!userFamilyId.equals(familyId)) {
-            throw new AccessDeniedException("소속된 가족과 다른 가족입니다.");
+            throw new AccessDeniedException("소속된 가족이 아닙니다..");
         }
 
         Family family = getFamilyFromDatabase(familyId);
