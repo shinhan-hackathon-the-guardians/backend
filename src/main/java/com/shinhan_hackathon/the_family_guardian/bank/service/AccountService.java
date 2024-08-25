@@ -43,6 +43,7 @@ import org.springframework.web.client.RestClient;
 public class AccountService {
     private static final String BASE_URL = "https://finopenapi.ssafy.io/ssafy/api/v1/edu/demandDeposit/";
     private final RestClient restClient = RestClient.create();
+    private final BankUtil bankUtil;
 
     // TODO: 반환값 DTO 형태로 반환할 것 (완료)
     // TODO: 필요한 입력값을 받아 반환하는 코드로 변경할 것 (일부 필요한 기능들만 완료, 나머지는 기본 값 사용)
@@ -52,7 +53,7 @@ public class AccountService {
     public DemandDepositCreationResponse createDemandDeposit() {
         String apiName = "createDemandDeposit";
         DemandDepositCreationRequest demandDepositCreationRequest = DemandDepositCreationRequest.builder()
-                .header(BankUtil.createHeader(apiName))
+                .header(bankUtil.createHeader(apiName))
                 .bankCode("088")
                 .accountName("신한은행 수시입출금")
                 .accountDescription("신한은행 수시입출금 상품입니다.")
@@ -66,7 +67,7 @@ public class AccountService {
     public DemandDepositListResponse inquireDemandDepositList() {
         String apiName = "inquireDemandDepositList";
         DemandDepositListRequest demandDepositListRequest = DemandDepositListRequest.builder()
-                .header(BankUtil.createHeader(apiName))
+                .header(bankUtil.createHeader(apiName))
                 .build();
 
         return executePost("inquireDemandDepositList",
@@ -78,7 +79,7 @@ public class AccountService {
         String apiName = "createDemandDepositAccount";
         String accountTypeUniqueNo = "088-1-3e9cb2bb399f4f"; // 하나의 상품만 사용하는 것으로 제한하겠음
         AccountCreationRequest accountCreationRequest = AccountCreationRequest.builder()
-                .header(BankUtil.createHeader(apiName))
+                .header(bankUtil.createHeader(apiName))
                 .accountTypeUniqueNo(accountTypeUniqueNo)
                 .build();
 
@@ -90,7 +91,7 @@ public class AccountService {
     public AccountListResponse inquireAccountList() {
         String apiName = "inquireDemandDepositAccountList";
         AccountListRequest accountListRequest = AccountListRequest.builder()
-                .header(BankUtil.createHeader(apiName))
+                .header(bankUtil.createHeader(apiName))
                 .build();
 
         return executePost("inquireDemandDepositAccountList", accountListRequest,
@@ -104,7 +105,7 @@ public class AccountService {
             accountNo = "0885135436359049";
         }
         AccountRequest accountRequest = AccountRequest.builder()
-                .header(BankUtil.createHeader(apiName))
+                .header(bankUtil.createHeader(apiName))
                 .accountNo(accountNo)
                 .build();
 
@@ -118,7 +119,7 @@ public class AccountService {
             accountNo = "0885135436359049";
         }
         AccountHolderNameRequest accountHolderNameRequest = AccountHolderNameRequest.builder()
-                .header(BankUtil.createHeader(apiName))
+                .header(bankUtil.createHeader(apiName))
                 .accountNo(accountNo)
                 .build();
 
@@ -131,7 +132,7 @@ public class AccountService {
         String apiName = "inquireDemandDepositAccountBalance";
         String accountNo = "0885135436359049";
         AccountBalanceRequest accountRequest = AccountBalanceRequest.builder()
-                .header(BankUtil.createHeader(apiName))
+                .header(bankUtil.createHeader(apiName))
                 .accountNo(accountNo)
                 .build();
 
@@ -143,7 +144,7 @@ public class AccountService {
     public AccountWithdrawalResponse updateAccountWithdrawal(String accountNo, Long transactionBalance) {
         String apiName = "updateDemandDepositAccountWithdrawal";
         AccountWithdrawalRequest accountWithdrawalRequest = AccountWithdrawalRequest.builder()
-                .header(BankUtil.createHeader(apiName))
+                .header(bankUtil.createHeader(apiName))
                 .accountNo(accountNo)
                 .transactionBalance(transactionBalance)
                 .transactionSummary("(수시입츨금) : 출금")
@@ -157,7 +158,7 @@ public class AccountService {
     public AccountDepositResponse updateAccountDeposit(String accountNo, Long transactionBalance) {
         String apiName = "updateDemandDepositAccountDeposit";
         AccountDepositRequest accountDepositRequest = AccountDepositRequest.builder()
-                .header(BankUtil.createHeader(apiName))
+                .header(bankUtil.createHeader(apiName))
                 .accountNo(accountNo)
                 .transactionBalance(transactionBalance)
                 .transactionSummary("(수시입츨금) : 출금")
@@ -171,7 +172,7 @@ public class AccountService {
     public AccountTransferResponse updateAccountTransfer(String depositAccountNo, String withdrawalAccountNo, Long transactionBalance) {
         String apiName = "updateDemandDepositAccountTransfer";
         AccountTransferRequest accountTransferRequest = AccountTransferRequest.builder()
-                .header(BankUtil.createHeader(apiName))
+                .header(bankUtil.createHeader(apiName))
                 .depositAccountNo(depositAccountNo)
                 .transactionBalance(transactionBalance)
                 .withdrawalAccountNo(withdrawalAccountNo)
@@ -187,7 +188,7 @@ public class AccountService {
         String apiName = "updateTransferLimit";
         String accountNo = "0885135436359049";
         AccountTransferLimitRequest accountTransferLimitRequest = AccountTransferLimitRequest.builder()
-                .header(BankUtil.createHeader(apiName))
+                .header(bankUtil.createHeader(apiName))
                 .accountNo(accountNo)
                 .oneTimeTransferLimit(1000000000L) // 본 서비스가 한도를 대신 처리할 것임
                 .dailyTransferLimit(1000000000L)
@@ -200,7 +201,7 @@ public class AccountService {
     public AccountTransactionHistoryListResponse inquireTransactionHistoryList(String accountNo) {
         String apiName = "inquireTransactionHistoryList";
         AccountTransactionHistoryListRequest accountTransactionHistoryListRequest = AccountTransactionHistoryListRequest.builder()
-                .header(BankUtil.createHeader(apiName))
+                .header(bankUtil.createHeader(apiName))
                 .accountNo(accountNo)
                 .startDate("20240801")
                 .endDate("20241231")
@@ -216,7 +217,7 @@ public class AccountService {
     public AccountTransactionHistoryResponse inquireTransactionHistory(String accountNo, Long transactionUniqueNo) {
         String apiName = "inquireTransactionHistory";
         AccountTransactionHistoryRequest accountTransactionHistoryRequest = AccountTransactionHistoryRequest.builder()
-                .header(BankUtil.createHeader(apiName))
+                .header(bankUtil.createHeader(apiName))
                 .accountNo(accountNo)
                 .transactionUniqueNo(transactionUniqueNo)
                 .build();
@@ -229,7 +230,7 @@ public class AccountService {
     public AccountDeletionResponse deleteAccount(String accountNo, String refundAccountNo) {
         String apiName = "deleteDemandDepositAccount";
         AccountDeletionRequest accountDeletionRequest = AccountDeletionRequest.builder()
-                .header(BankUtil.createHeader(apiName))
+                .header(bankUtil.createHeader(apiName))
                 .accountNo(accountNo)
                 .refundAccountNo(refundAccountNo)
                 .build();

@@ -8,6 +8,7 @@ import com.shinhan_hackathon.the_family_guardian.bank.util.BankUtil;
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -19,16 +20,15 @@ import org.springframework.web.client.RestClient;
 public class AccountAuthService {
     private static final String BASE_URL = "https://finopenapi.ssafy.io/ssafy/api/v1/edu/accountAuth/";
     private final RestClient restClient = RestClient.create();
+    private final BankUtil bankUtil;
 
-    private static final String companyAuthText;
+    @Value("${bank.company-name}")
+    private String companyAuthText;
 
-    static {
-        Dotenv dotenv = Dotenv.load();
-        companyAuthText = dotenv.get("COMPANY_AUTH_NAME");
-    }
+
     public OpenAccountAuthResponse openAccountAuth(String accountNo) {
         String apiName = "openAccountAuth";
-        Header header = BankUtil.createHeader(apiName);
+        Header header = bankUtil.createHeader(apiName);
         OpenAccountAuthRequest authRequest = new OpenAccountAuthRequest(header, accountNo, companyAuthText);
 
         return executePost(apiName, authRequest, OpenAccountAuthResponse.class).getBody();
@@ -36,7 +36,7 @@ public class AccountAuthService {
 
     public CheckAuthCodeResponse checkAuthCode(String accountNo, String authCode) {
         String apiName = "checkAuthCode";
-        Header header = BankUtil.createHeader(apiName);
+        Header header = bankUtil.createHeader(apiName);
         CheckAuthCodeRequest authRequest = new CheckAuthCodeRequest(header, accountNo, companyAuthText, authCode);
 
         return executePost(apiName, authRequest, CheckAuthCodeResponse.class).getBody();

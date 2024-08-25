@@ -2,26 +2,28 @@ package com.shinhan_hackathon.the_family_guardian.bank.util;
 
 import com.shinhan_hackathon.the_family_guardian.bank.dto.Header;
 import com.shinhan_hackathon.the_family_guardian.bank.dto.HeaderResponse;
-import io.github.cdimascio.dotenv.Dotenv;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
 
+@Component
 public class BankUtil {
 
-    private static final String apiKey;
-    private static final String userKey;
+    private final String apiKey;
+    private final String userKey;
 
     private static final String SUCCESS_CODE = "H0000";
-
-    static {
-        Dotenv dotenv = Dotenv.load();
-        apiKey = dotenv.get("API_KEY");
-        userKey = dotenv.get("USER_KEY");
+    
+    public BankUtil(@Value("${bank.key.api}") String apiKey, @Value("${bank.key.user}") String userKey) {
+        this.apiKey = apiKey;
+        this.userKey = userKey;
     }
 
-    public static Header createHeader(String apiName) {
+    public Header createHeader(String apiName) {
         String apiServiceCode = apiName;
 
         return Header.builder()
