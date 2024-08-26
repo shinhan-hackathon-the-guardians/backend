@@ -10,7 +10,7 @@ import com.shinhan_hackathon.the_family_guardian.domain.user.dto.AccountAuthResp
 import com.shinhan_hackathon.the_family_guardian.domain.user.dto.SignupRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import com.shinhan_hackathon.the_family_guardian.domain.user.repository.UserRepository;
-import com.shinhan_hackathon.the_family_guardian.global.service.RedisService;
+import com.shinhan_hackathon.the_family_guardian.global.redis.service.RedisService;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
