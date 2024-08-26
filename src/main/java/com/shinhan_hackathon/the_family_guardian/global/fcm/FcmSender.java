@@ -55,6 +55,23 @@ public class FcmSender implements MessageSender {
         };
     }
 
+    public void sendTransferSuccessMessage(String deviceToken, String senderAccountNumber, String receiverAccountNumber, long transactionBalance) {
+        sendTransferResultMessage(deviceToken, senderAccountNumber, receiverAccountNumber, transactionBalance, true);
+    }
+    public void sendTransferFailMessage(String deviceToken, String senderAccountNumber, String receiverAccountNumber, long transactionBalance) {
+        sendTransferResultMessage(deviceToken, senderAccountNumber, receiverAccountNumber, transactionBalance, true);
+    }
+    public void sendTransferResultMessage(String deviceToken, String senderAccountNumber, String receiverAccountNumber, long transactionBalance, boolean isSuccess) {
+        sendTransactionResultMessage(
+                deviceToken,
+                TransactionType.TRANSFER,
+                senderAccountNumber,
+                receiverAccountNumber,
+                transactionBalance,
+                "이체",
+                isSuccess
+        );
+    }
     public void sendWithdrawalSuccessMessage(String deviceToken, String userAccountNumber, long transactionBalance) {
         sendWithdrawalResultMessage(deviceToken, userAccountNumber, transactionBalance, true);
     }

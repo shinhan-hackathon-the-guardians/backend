@@ -106,13 +106,17 @@ public class TransactionService {
     public void updateTransfer(TransferRequest transferRequest) {
         log.info("TransactionService.updateTransfer() is called.");
         Long userId = getUserId();
-        String withdrawalAccountNumber = userService.getAccountNumber(userId);
+//        String withdrawalAccountNumber = userService.getAccountNumber(userId);
+        User user = userService.getUser(userId);
+        String withdrawalAccountNumber = user.getAccountNumber();
 
         // TODO: Rule Check
         if(paymentLimitService.checkMaxAmountLimit(userId, transferRequest.transactionBalance())) {
             if(paymentLimitService.checkSingleTransactionLimit(userId, transferRequest.transactionBalance())) { // 승인
                 accountService.updateAccountTransfer(transferRequest.depositAccountNumber(), withdrawalAccountNumber, transferRequest.transactionBalance()); // 이체
+
                 // TODO: 이체 성공 알림
+                fcmSender.sendTransferSuccessMessage(user.getDeviceToken(), withdrawalAccountNumber, transferRequest.depositAccountNumber(), transferRequest.transactionBalance());
             }
             else  { // 단건 한도 초과
                 // TODO: 승인 요청 알림 -- 여기서 끊고, Notification에 역할을 넘김
@@ -121,6 +125,7 @@ public class TransactionService {
         }
         else { // 총 한도 초과
             // TODO: 이체 거부 알림
+            fcmSender.sendTransferFailMessage(user.getDeviceToken(), withdrawalAccountNumber, transferRequest.depositAccountNumber(), transferRequest.transactionBalance());
         }
 
         log.info("Success to transfer account.");
