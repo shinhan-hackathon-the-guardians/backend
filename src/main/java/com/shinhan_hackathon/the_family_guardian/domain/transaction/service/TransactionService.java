@@ -135,13 +135,15 @@ public class TransactionService {
     public void updatePayment(PaymentRequest paymentRequest) {
         log.info("TransactionService.updatePayment() is called.");
         Long userId = getUserId();
-        String accountNumber = userService.getAccountNumber(userId);
+//        String withdrawalAccountNumber = userService.getAccountNumber(userId);
+        User user = userService.getUser(userId);
 
         // TODO: Rule Check
         if(paymentLimitService.checkMaxAmountLimit(userId, paymentRequest.transactionBalance())) {
             if(paymentLimitService.checkSingleTransactionLimit(userId, paymentRequest.transactionBalance())) { // 승인
-                accountService.updateAccountDeposit(accountNumber, paymentRequest.transactionBalance()); // 결제
+                accountService.updateAccountDeposit(user.getAccountNumber(), paymentRequest.transactionBalance()); // 결제
                 // TODO: 결제 성공 알림
+                fcmSender.sendPaymentSuccessMessage(user.getDeviceToken(), user.getAccountNumber(), paymentRequest.businessName(), paymentRequest.transactionBalance());
             }
             else  { // 단건 한도 초과
                 // TODO: 승인 요청 알림 -- 여기서 끊고, Notification에 역할을 넘김
@@ -150,6 +152,7 @@ public class TransactionService {
         }
         else { // 총 한도 초과
             // TODO: 결제 거부 알림
+            fcmSender.sendPaymentFailMessage(user.getDeviceToken(), user.getAccountNumber(), paymentRequest.businessName(), paymentRequest.transactionBalance());
         }
 
         log.info("Success to payment account.");

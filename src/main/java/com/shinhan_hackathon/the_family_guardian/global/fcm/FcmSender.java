@@ -55,13 +55,30 @@ public class FcmSender implements MessageSender {
         };
     }
 
+    public void sendPaymentSuccessMessage(String deviceToken, String senderAccountNumber, String receiverName, long transactionBalance) {
+        sendPaymentResultMessage(deviceToken, senderAccountNumber, receiverName, transactionBalance, true);
+    }
+    public void sendPaymentFailMessage(String deviceToken, String senderAccountNumber, String receiverName, long transactionBalance) {
+        sendPaymentResultMessage(deviceToken, senderAccountNumber, receiverName, transactionBalance, false);
+    }
+    private void sendPaymentResultMessage(String deviceToken, String senderAccountNumber, String receiver, long transactionBalance, boolean isSuccess) {
+        sendTransactionResultMessage(
+                deviceToken,
+                TransactionType.PAYMENT,
+                senderAccountNumber,
+                receiver,
+                transactionBalance,
+                "결제",
+                isSuccess
+        );
+    }
     public void sendTransferSuccessMessage(String deviceToken, String senderAccountNumber, String receiverAccountNumber, long transactionBalance) {
         sendTransferResultMessage(deviceToken, senderAccountNumber, receiverAccountNumber, transactionBalance, true);
     }
     public void sendTransferFailMessage(String deviceToken, String senderAccountNumber, String receiverAccountNumber, long transactionBalance) {
-        sendTransferResultMessage(deviceToken, senderAccountNumber, receiverAccountNumber, transactionBalance, true);
+        sendTransferResultMessage(deviceToken, senderAccountNumber, receiverAccountNumber, transactionBalance, false);
     }
-    public void sendTransferResultMessage(String deviceToken, String senderAccountNumber, String receiverAccountNumber, long transactionBalance, boolean isSuccess) {
+    private void sendTransferResultMessage(String deviceToken, String senderAccountNumber, String receiverAccountNumber, long transactionBalance, boolean isSuccess) {
         sendTransactionResultMessage(
                 deviceToken,
                 TransactionType.TRANSFER,
@@ -76,9 +93,9 @@ public class FcmSender implements MessageSender {
         sendWithdrawalResultMessage(deviceToken, userAccountNumber, transactionBalance, true);
     }
     public void sendWithdrawalFailMessage(String deviceToken, String userAccountNumber, long transactionBalance) {
-        sendWithdrawalResultMessage(deviceToken, userAccountNumber, transactionBalance, true);
+        sendWithdrawalResultMessage(deviceToken, userAccountNumber, transactionBalance, false);
     }
-    public void sendWithdrawalResultMessage(String deviceToken, String userAccountNumber, long transactionBalance, boolean isSuccess) {
+    private void sendWithdrawalResultMessage(String deviceToken, String userAccountNumber, long transactionBalance, boolean isSuccess) {
         sendTransactionResultMessage(
                 deviceToken,
                 TransactionType.WITHDRAWAL,
@@ -89,11 +106,11 @@ public class FcmSender implements MessageSender {
                 isSuccess
         );
     }
-    private void sendTransactionResultMessage(String deviceToken, TransactionType txType, String senderAccount, String receiverAccount, long transactionBalance, String txName, boolean isSuccess) {
+    private void sendTransactionResultMessage(String deviceToken, TransactionType txType, String senderAccount, String receiver, long transactionBalance, String txName, boolean isSuccess) {
         TransactionResultInfo transactionResultInfo = new TransactionResultInfo(
                 txType,
                 senderAccount,
-                receiverAccount,
+                receiver,
                 transactionBalance
         );
 
