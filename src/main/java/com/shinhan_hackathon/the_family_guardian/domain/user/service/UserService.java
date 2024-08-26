@@ -11,13 +11,12 @@ import com.shinhan_hackathon.the_family_guardian.domain.user.dto.SignupRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import com.shinhan_hackathon.the_family_guardian.domain.user.repository.UserRepository;
 import com.shinhan_hackathon.the_family_guardian.global.service.RedisService;
+import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Service
 @Slf4j
@@ -49,7 +48,8 @@ public class UserService {
         LocalDateTime expireTime = LocalDateTime.now().plusMinutes(5);
         redisService.setValues(accountNo, csrfToken, expireTime);
 
-        log.info("accountNo:{} csrf:{} txNo:{}", accountNo, csrfToken, openAccountAuthResponse.rec().transactionUniqueNo());
+        log.info("accountNo:{} csrf:{} txNo:{}", accountNo, csrfToken,
+                openAccountAuthResponse.rec().transactionUniqueNo());
 
         String accountAuthCode = getAccountAuthCode(accountNo, openAccountAuthResponse);
         log.info("[NOTIFICATION] account auth code: {}", accountAuthCode);
@@ -58,7 +58,8 @@ public class UserService {
     }
 
     private String getAccountAuthCode(String accountNo, OpenAccountAuthResponse openAccountAuthResponse) {
-        AccountTransactionHistoryResponse accountTransactionHistoryResponse = accountService.inquireTransactionHistory(accountNo, openAccountAuthResponse.rec().transactionUniqueNo());
+        AccountTransactionHistoryResponse accountTransactionHistoryResponse = accountService.inquireTransactionHistory(
+                accountNo, openAccountAuthResponse.rec().transactionUniqueNo());
         String transactionSummary = accountTransactionHistoryResponse.getRec().getTransactionSummary();
         return transactionSummary.split(" ")[1];
     }
@@ -117,4 +118,6 @@ public class UserService {
 
         return user.getAccountNumber();
     }
+
+
 }
