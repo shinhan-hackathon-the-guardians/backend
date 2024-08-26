@@ -1,6 +1,7 @@
 package com.shinhan_hackathon.the_family_guardian.domain.transaction.controller;
 
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.DepositRequest;
+import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.PaymentRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.TransferRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.WithdrawalRequest;
 import com.shinhan_hackathon.the_family_guardian.global.auth.dto.UserPrincipal;
@@ -61,9 +62,18 @@ public class TransactionController {
 
 	// TODO: 이체
 	@PostMapping("/transfer")
-	public ResponseEntity<Void> updateTransfer(@RequestBody TransferRequest transactionBalance) {
+	public ResponseEntity<Void> updateTransfer(@RequestBody TransferRequest transferRequest) {
 		log.info("TransactionController.updateTransfer() is called.");
-		transactionService.updateTransfer(transactionBalance);
+		transactionService.updateTransfer(transferRequest);
+
+		return ResponseEntity.ok().build();
+	}
+
+	// TODO: 결제
+	@PostMapping("/payment")
+	public ResponseEntity<Void> updatePayment(@RequestBody PaymentRequest paymentRequest) {
+		log.info("TransactionController.updatePayment() is called.");
+		transactionService.updatePayment(paymentRequest);
 
 		return ResponseEntity.ok().build();
 	}

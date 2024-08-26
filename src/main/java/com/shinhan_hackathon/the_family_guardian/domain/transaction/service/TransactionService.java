@@ -2,7 +2,9 @@ package com.shinhan_hackathon.the_family_guardian.domain.transaction.service;
 
 import com.shinhan_hackathon.the_family_guardian.bank.dto.response.AccountTransactionHistoryListResponse;
 import com.shinhan_hackathon.the_family_guardian.bank.service.AccountService;
+import com.shinhan_hackathon.the_family_guardian.domain.payment.service.PaymentLimitService;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.DepositRequest;
+import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.PaymentRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.TransactionResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.TransferRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.WithdrawalRequest;
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class TransactionService {
     private final UserService userService;
+    private final PaymentLimitService paymentLimitService;
     private final TransactionRepository transactionRepository;
     private final AccountService accountService;
 
@@ -39,7 +42,8 @@ public class TransactionService {
     // TODO: 입금
     public void updateDeposit(DepositRequest depositRequest) {
         log.info("TransactionService.updateDeposit() is called.");
-        String accountNumber = userService.getAccountNumber(getUserId());
+        Long userId = getUserId();
+        String accountNumber = userService.getAccountNumber(userId);
         accountService.updateAccountDeposit(accountNumber, depositRequest.transactionBalance());
 
         // TODO: 입금 결과에 대한 알림
@@ -57,14 +61,33 @@ public class TransactionService {
     // TODO: 출금
     public void updateWithdrawal(WithdrawalRequest withdrawalRequest) {
         log.info("TransactionService.updateWithdrawal() is called.");
-        String accountNumber = userService.getAccountNumber(getUserId());
+        Long userId = getUserId();
+        String accountNumber = userService.getAccountNumber(userId);
 
         // TODO: Rule Check
-        // TODO: 요청 숭인/차단을 위한 가디언에게 알림
-        // TODO: 요청 승인/차단
-        accountService.updateAccountDeposit(accountNumber, withdrawalRequest.transactionBalance());
+        if(paymentLimitService.checkMaxAmountLimit(userId, withdrawalRequest.transactionBalance())) {
+            if(paymentLimitService.checkSingleTransactionLimit(userId, withdrawalRequest.transactionBalance())) { // 승인
+                accountService.updateAccountDeposit(accountNumber, withdrawalRequest.transactionBalance()); // 출금
+                // TODO: 출금 성공 알림
+            }
+            else  { // 단건 한도 초과
+                // TODO: 승인 요청 알림 -- 여기서 끊고, Notification에 역할을 넘김
 
-        // TODO: 출금 결과에 대한 알림
+                /*
+                 * Notification 로직
+                 * -----------------
+                 *
+                 * TODO: 승인 요청 결과
+                 * if() {} // 승인 요청 허가 -> 출금 -> 출금 완료 알림
+                 * TODO: 허가 시 출금을 어떻게 구현? -> Notification 쪽에서 해야할듯
+                 * else {} // 승인 요청 불허 -> 출금 거부 알림
+                 *
+                 */
+            }
+        }
+        else { // 총 한도 초과
+            // TODO: 출금 거부 알림
+        }
 
         log.info("Success to withdraw account.");
     }
@@ -72,17 +95,49 @@ public class TransactionService {
     // TODO: 이체
     public void updateTransfer(TransferRequest transferRequest) {
         log.info("TransactionService.updateTransfer() is called.");
-        String withdrawalAccountNumber = userService.getAccountNumber(getUserId());
+        Long userId = getUserId();
+        String withdrawalAccountNumber = userService.getAccountNumber(userId);
 
         // TODO: Rule Check
-        // TODO: 요청 숭인/차단을 위한 가디언에게 알림
-        // TODO: 요청 승인/차단
-        accountService.updateAccountTransfer(transferRequest.depositAccountNumber(), withdrawalAccountNumber,
-                transferRequest.transactionBalance());
+        if(paymentLimitService.checkMaxAmountLimit(userId, transferRequest.transactionBalance())) {
+            if(paymentLimitService.checkSingleTransactionLimit(userId, transferRequest.transactionBalance())) { // 승인
+                accountService.updateAccountTransfer(transferRequest.depositAccountNumber(), withdrawalAccountNumber, transferRequest.transactionBalance()); // 이체
+                // TODO: 이체 성공 알림
+            }
+            else  { // 단건 한도 초과
+                // TODO: 승인 요청 알림 -- 여기서 끊고, Notification에 역할을 넘김
 
-        // TODO: 이체 결과에 대한 알림
+            }
+        }
+        else { // 총 한도 초과
+            // TODO: 이체 거부 알림
+        }
 
         log.info("Success to transfer account.");
+    }
+
+    // TODO: 결제 : 승인이 필요한 요청, 아닌 요청을 어떻게 구분?
+    public void updatePayment(PaymentRequest paymentRequest) {
+        log.info("TransactionService.updatePayment() is called.");
+        Long userId = getUserId();
+        String accountNumber = userService.getAccountNumber(userId);
+
+        // TODO: Rule Check
+        if(paymentLimitService.checkMaxAmountLimit(userId, paymentRequest.transactionBalance())) {
+            if(paymentLimitService.checkSingleTransactionLimit(userId, paymentRequest.transactionBalance())) { // 승인
+                accountService.updateAccountDeposit(accountNumber, paymentRequest.transactionBalance()); // 결제
+                // TODO: 결제 성공 알림
+            }
+            else  { // 단건 한도 초과
+                // TODO: 승인 요청 알림 -- 여기서 끊고, Notification에 역할을 넘김
+
+            }
+        }
+        else { // 총 한도 초과
+            // TODO: 결제 거부 알림
+        }
+
+        log.info("Success to payment account.");
     }
 
     private Long getUserId() {
