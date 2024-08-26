@@ -45,6 +45,8 @@ dependencies {
 
 	//spring AI
 	implementation 'org.springframework.ai:spring-ai-vertex-ai-gemini-spring-boot-starter:1.0.0-SNAPSHOT'
+	//mongodb
+	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 
 }
 

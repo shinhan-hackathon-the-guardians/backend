@@ -30,6 +30,7 @@ public class UserService {
     private final AccountService accountService;
     private final RedisService redisService;
 
+    @Transactional
     public void createUser(SignupRequest signupRequest) {
 
         validateSignupRequest(signupRequest);
