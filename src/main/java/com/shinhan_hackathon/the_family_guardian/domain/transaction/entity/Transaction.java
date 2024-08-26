@@ -3,14 +3,8 @@ package com.shinhan_hackathon.the_family_guardian.domain.transaction.entity;
 import com.shinhan_hackathon.the_family_guardian.bank.dto.response.AccountTransactionHistoryListResponse;
 import com.shinhan_hackathon.the_family_guardian.bank.dto.response.AccountTransactionHistoryResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+
 import java.sql.Timestamp;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -37,7 +31,8 @@ public class Transaction {
     private User user;
 
     @Column(nullable = false, length = 20)
-    private String transactionType;
+    @Enumerated(EnumType.STRING)
+    private TransactionType transactionType;
 
     @Column(nullable = false)
     private Long amount;
@@ -51,7 +46,7 @@ public class Transaction {
     private int approveCount; // 승인된 요청 횟수
 
     @Builder
-    public Transaction(User user, String transactionType, Long amount, Timestamp timestamp, String status) {
+    public Transaction(User user, TransactionType transactionType, Long amount, Timestamp timestamp, String status) {
         this.user = user;
         this.transactionType = transactionType;
         this.amount = amount;
