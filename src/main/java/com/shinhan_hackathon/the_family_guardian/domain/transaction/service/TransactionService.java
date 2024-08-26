@@ -3,15 +3,15 @@ package com.shinhan_hackathon.the_family_guardian.domain.transaction.service;
 import com.shinhan_hackathon.the_family_guardian.bank.dto.response.AccountTransactionHistoryListResponse;
 import com.shinhan_hackathon.the_family_guardian.bank.service.AccountService;
 import com.shinhan_hackathon.the_family_guardian.domain.payment.service.PaymentLimitService;
-import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.DepositRequest;
-import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.PaymentRequest;
-import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.TransactionResponse;
-import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.TransferRequest;
-import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.WithdrawalRequest;
+import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.*;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.repository.TransactionRepository;
+import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import com.shinhan_hackathon.the_family_guardian.domain.user.service.UserService;
 import com.shinhan_hackathon.the_family_guardian.global.auth.dto.UserPrincipal;
 import java.util.List;
+
+import com.shinhan_hackathon.the_family_guardian.global.auth.util.AuthUtil;
+import com.shinhan_hackathon.the_family_guardian.global.fcm.FcmSender;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +27,8 @@ public class TransactionService {
     private final PaymentLimitService paymentLimitService;
     private final TransactionRepository transactionRepository;
     private final AccountService accountService;
+    private final FcmSender fcmSender;
+    private final AuthUtil authUtil;
 
     public List<TransactionResponse> getTransactionHistory(Long userId, Pageable pageable) {
         log.info("TransactionService.getTransactionHistory() is called.");
@@ -43,10 +45,13 @@ public class TransactionService {
     public void updateDeposit(DepositRequest depositRequest) {
         log.info("TransactionService.updateDeposit() is called.");
         Long userId = getUserId();
-        String accountNumber = userService.getAccountNumber(userId);
-        accountService.updateAccountDeposit(accountNumber, depositRequest.transactionBalance());
+        User user = userService.getUser(userId);
+        accountService.updateAccountDeposit(user.getAccountNumber(), depositRequest.transactionBalance());
 
         // TODO: 입금 결과에 대한 알림
+        DepositInfo depositInfo = new DepositInfo(user.getName(), user.getAccountNumber(), depositRequest.transactionBalance());
+        String deviceToken = authUtil.getUserPrincipal().getDeviceToken();
+        fcmSender.sendMessage(deviceToken, "입금", depositInfo.toString());
 
         log.info("Success to make a deposit.");
     }
