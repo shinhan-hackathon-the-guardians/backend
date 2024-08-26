@@ -8,8 +8,11 @@ import com.shinhan_hackathon.the_family_guardian.bank.service.AccountService;
 import com.shinhan_hackathon.the_family_guardian.bank.util.BankUtil;
 import com.shinhan_hackathon.the_family_guardian.domain.user.dto.AccountAuthResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.user.dto.SignupRequest;
+import com.shinhan_hackathon.the_family_guardian.domain.user.dto.UpdateDeviceTokenRequest;
+import com.shinhan_hackathon.the_family_guardian.domain.user.dto.UpdateDeviceTokenResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import com.shinhan_hackathon.the_family_guardian.domain.user.repository.UserRepository;
+import com.shinhan_hackathon.the_family_guardian.global.auth.util.AuthUtil;
 import com.shinhan_hackathon.the_family_guardian.global.redis.service.RedisService;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -28,6 +31,7 @@ public class UserService {
     private final AccountAuthService accountAuthService;
     private final AccountService accountService;
     private final RedisService redisService;
+    private final AuthUtil authUtil;
 
     @Transactional
     public void createUser(SignupRequest signupRequest) {
@@ -119,5 +123,13 @@ public class UserService {
         return user.getAccountNumber();
     }
 
+    @Transactional
+    public UpdateDeviceTokenResponse setDeviceToken(String deviceToken) {
+        Long userId = Long.valueOf(authUtil.getUserPrincipal().getUsername());
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
+        String updatedDeviceToken = user.updateDeviceToken(deviceToken);
 
+        authUtil.updateAuthentication(user);
+        return new UpdateDeviceTokenResponse(updatedDeviceToken);
+    }
 }
