@@ -123,6 +123,11 @@ public class UserService {
         return user.getAccountNumber();
     }
 
+    public User getUser(Long userId) {
+        return userRepository.findById(userId).orElseThrow(() ->
+                new RuntimeException("Failed to found user."));
+    }
+
     @Transactional
     public UpdateDeviceTokenResponse setDeviceToken(String deviceToken) {
         Long userId = Long.valueOf(authUtil.getUserPrincipal().getUsername());
