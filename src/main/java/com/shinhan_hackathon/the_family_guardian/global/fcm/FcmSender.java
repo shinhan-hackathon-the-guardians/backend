@@ -5,6 +5,9 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
+import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.TransactionResultInfo;
+import com.shinhan_hackathon.the_family_guardian.domain.transaction.entity.TransactionType;
+import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,5 +53,37 @@ public class FcmSender implements MessageSender {
                 throw new RuntimeException(e);
             }
         };
+    }
+
+    public void sendWithdrawalSuccessMessage(String deviceToken, String userAccountNumber, long transactionBalance) {
+        sendWithdrawalResultMessage(deviceToken, userAccountNumber, transactionBalance, true);
+    }
+    public void sendWithdrawalFailMessage(String deviceToken, String userAccountNumber, long transactionBalance) {
+        sendWithdrawalResultMessage(deviceToken, userAccountNumber, transactionBalance, true);
+    }
+    public void sendWithdrawalResultMessage(String deviceToken, String userAccountNumber, long transactionBalance, boolean isSuccess) {
+        sendTransactionResultMessage(
+                deviceToken,
+                TransactionType.WITHDRAWAL,
+                userAccountNumber,
+                null,
+                transactionBalance,
+                "출금",
+                isSuccess
+        );
+    }
+    private void sendTransactionResultMessage(String deviceToken, TransactionType txType, String senderAccount, String receiverAccount, long transactionBalance, String txName, boolean isSuccess) {
+        TransactionResultInfo transactionResultInfo = new TransactionResultInfo(
+                txType,
+                senderAccount,
+                receiverAccount,
+                transactionBalance
+        );
+
+        sendMessage(
+                deviceToken,
+                txName + (isSuccess ? " 성공" : " 실패"),
+                transactionResultInfo.toString()
+        );
     }
 }

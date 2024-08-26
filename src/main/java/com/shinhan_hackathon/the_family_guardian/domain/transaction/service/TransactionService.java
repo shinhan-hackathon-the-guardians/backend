@@ -4,6 +4,7 @@ import com.shinhan_hackathon.the_family_guardian.bank.dto.response.AccountTransa
 import com.shinhan_hackathon.the_family_guardian.bank.service.AccountService;
 import com.shinhan_hackathon.the_family_guardian.domain.payment.service.PaymentLimitService;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.*;
+import com.shinhan_hackathon.the_family_guardian.domain.transaction.entity.TransactionType;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.repository.TransactionRepository;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import com.shinhan_hackathon.the_family_guardian.domain.user.service.UserService;
@@ -67,13 +68,16 @@ public class TransactionService {
     public void updateWithdrawal(WithdrawalRequest withdrawalRequest) {
         log.info("TransactionService.updateWithdrawal() is called.");
         Long userId = getUserId();
-        String accountNumber = userService.getAccountNumber(userId);
+        User user = userService.getUser(userId);
 
         // TODO: Rule Check
         if(paymentLimitService.checkMaxAmountLimit(userId, withdrawalRequest.transactionBalance())) {
             if(paymentLimitService.checkSingleTransactionLimit(userId, withdrawalRequest.transactionBalance())) { // 승인
-                accountService.updateAccountDeposit(accountNumber, withdrawalRequest.transactionBalance()); // 출금
+                accountService.updateAccountDeposit(user.getAccountNumber(), withdrawalRequest.transactionBalance()); // 출금
                 // TODO: 출금 성공 알림
+
+                fcmSender.sendWithdrawalSuccessMessage(user.getDeviceToken(), user.getAccountNumber(), withdrawalRequest.transactionBalance());
+
             }
             else  { // 단건 한도 초과
                 // TODO: 승인 요청 알림 -- 여기서 끊고, Notification에 역할을 넘김
@@ -92,6 +96,7 @@ public class TransactionService {
         }
         else { // 총 한도 초과
             // TODO: 출금 거부 알림
+            fcmSender.sendWithdrawalFailMessage(user.getDeviceToken(), user.getAccountNumber(), withdrawalRequest.transactionBalance());
         }
 
         log.info("Success to withdraw account.");
