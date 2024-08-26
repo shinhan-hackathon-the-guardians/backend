@@ -85,4 +85,8 @@ public class User {
 		this.role = role;
 		return this.role;
 	}
+
+	public void updateLevel(Level level) {
+		this.level = level;
+	}
 }

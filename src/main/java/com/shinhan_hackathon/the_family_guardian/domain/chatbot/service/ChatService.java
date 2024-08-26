@@ -2,11 +2,9 @@ package com.shinhan_hackathon.the_family_guardian.domain.chatbot.service;
 
 import com.shinhan_hackathon.the_family_guardian.domain.chatbot.entity.ChatMessage;
 import com.shinhan_hackathon.the_family_guardian.domain.chatbot.repository.ChatMessageRepository;
-import com.shinhan_hackathon.the_family_guardian.domain.chatbot.response.ChatHistoryResponse;
+import com.shinhan_hackathon.the_family_guardian.domain.chatbot.dto.response.ChatHistoryResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
