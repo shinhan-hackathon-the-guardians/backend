@@ -24,7 +24,7 @@ public class Family {
     private String description;
 
     @Column(nullable = false)
-    private int approvalRequirement = 1; // 승인 요구 가디언 수
+    private Integer approvalRequirement = 1; // 승인 요구 가디언 수
 
     @OneToMany(mappedBy = "family")
     private List<User> users;
@@ -35,5 +35,24 @@ public class Family {
         this.description = description;
         this.approvalRequirement = approvalRequirement;
         this.users = users;
+    }
+
+    public String updateName(String name) {
+        return this.name = name;
+    }
+
+    public String updateDescription(String description) {
+        return this.description = description;
+    }
+
+    public Integer updateApprovalRequirement(int approvalRequirement) {
+        return this.approvalRequirement = approvalRequirement;
+    }
+
+    public void addUser(User user) {
+        boolean present = users.stream().anyMatch(member -> member.getId().equals(user.getId()));
+        if (!present) {
+            users.add(user);
+        }
     }
 }
