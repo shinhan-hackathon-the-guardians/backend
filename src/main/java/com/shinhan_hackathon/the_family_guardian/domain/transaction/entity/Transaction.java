@@ -37,22 +37,25 @@ public class Transaction {
     private Timestamp timestamp; // 요청을 받은 Timestamp, Timeout 확인을 위해 사용
 
     @Column(nullable = false, length = 20)
-    private String status; // 요청의 최종 결과 -> 차단, 승인
+    private TransactionStatus status; // 요청의 최종 결과 -> 차단, 승인
 
     private int approveCount; // 승인된 요청 횟수
+
+    private String receiver;
 
     public void incrementApproveCount() {
         this.approveCount++;
     }
 
     @Builder
-    public Transaction(User user, TransactionType transactionType, Long transactionBalance, Timestamp timestamp, String status, int approveCount) {
+    public Transaction(User user, TransactionType transactionType, Long transactionBalance, Timestamp timestamp, TransactionStatus status, int approveCount, String receiver) {
         this.user = user;
         this.transactionType = transactionType;
         this.transactionBalance = transactionBalance;
         this.timestamp = timestamp;
         this.status = status;
         this.approveCount = approveCount;
+        this.receiver = receiver;
     }
 
     // TODO: Transaction의 결과를 FCM으로 통지할 때 사용할 수도 있고, 아니면 그냥 임의의 값으로 전송해도 괜찮을 듯
@@ -61,4 +64,5 @@ public class Transaction {
 
             .build();
     }
+
 }
