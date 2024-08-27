@@ -1,7 +1,6 @@
 package com.shinhan_hackathon.the_family_guardian.domain.user.entity;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 import com.shinhan_hackathon.the_family_guardian.domain.family.entity.Family;
 
@@ -88,7 +87,11 @@ public class User {
 		return this.role;
 	}
 
-	public String updateDeviceToken(String deviceToken) {
-		return this.deviceToken = deviceToken;
+	public void updateLevel(Level level) {
+		this.level = level;
 	}
+
+    public String updateDeviceToken(String deviceToken) {
+        return this.deviceToken = deviceToken;
+    }
 }
