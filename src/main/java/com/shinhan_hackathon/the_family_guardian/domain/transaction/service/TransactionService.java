@@ -19,9 +19,14 @@ import com.shinhan_hackathon.the_family_guardian.global.auth.dto.UserPrincipal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
+
+import com.shinhan_hackathon.the_family_guardian.global.event.PaymentApproveEvent;
+import com.shinhan_hackathon.the_family_guardian.global.event.TransferApproveEvent;
+import com.shinhan_hackathon.the_family_guardian.global.event.WithdrawalApproveEvent;
 import com.shinhan_hackathon.the_family_guardian.global.fcm.FcmSender;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -261,10 +266,11 @@ public class TransactionService {
 
 
     // TODO: 승인 요구치에 따른 출금 진행
-    public void executeWithdrawalTransaction(Long transactionId) {
+    @EventListener(WithdrawalApproveEvent.class)
+    public void executeWithdrawalTransaction(WithdrawalApproveEvent event) {
         log.info("TransactionService.executeWithdrawalTransaction() is called.");
         // Transaction 정보 조회
-        Transaction transaction = transactionRepository.findById(transactionId)
+        Transaction transaction = transactionRepository.findById(event.getTransactionId())
                 .orElseThrow(() -> new RuntimeException("Transaction Not Found."));
         User user = transaction.getUser();
         Integer approvalRequirement = user.getFamily().getApprovalRequirement(); // 승인 요구치
@@ -276,25 +282,27 @@ public class TransactionService {
     }
 
     // TODO: 승인 요구치에 따른 이체 진행 - DepositAccountNo를 받아야함, 수정 있을 수 있음
-    public void executeTransferTransaction(Long transactionId, String depositAccountNo) {
+    @EventListener(TransferApproveEvent.class)
+    public void executeTransferTransaction(TransferApproveEvent event) {
         log.info("TransactionService.executeTransferTransaction() is called.");
         // Transaction 정보 조회
-        Transaction transaction = transactionRepository.findById(transactionId)
+        Transaction transaction = transactionRepository.findById(event.getTransactionId())
                 .orElseThrow(() -> new RuntimeException("Transaction Not Found."));
         User user = transaction.getUser();
         Integer approvalRequirement = user.getFamily().getApprovalRequirement(); // 승인 요구치
 
         if(transaction.getApproveCount() >= approvalRequirement) { // 승인 요구치에 도달하면
             // 이체
-            accountService.updateAccountTransfer(depositAccountNo, user.getAccountNumber(), transaction.getTransactionBalance());
+            accountService.updateAccountTransfer(transaction.getReceiver(), user.getAccountNumber(), transaction.getTransactionBalance());
         }
     }
 
     // TODO: 승인 요구치에 따른 결제 진행
-    public void executePaymentTransaction(Long transactionId) {
+    @EventListener(PaymentApproveEvent.class)
+    public void executePaymentTransaction(PaymentApproveEvent event) {
         log.info("TransactionService.executePaymentTransaction() is called.");
         // Transaction 정보 조회
-        Transaction transaction = transactionRepository.findById(transactionId)
+        Transaction transaction = transactionRepository.findById(event.getTransactionId())
                 .orElseThrow(() -> new RuntimeException("Transaction Not Found."));
         User user = transaction.getUser();
         Integer approvalRequirement = user.getFamily().getApprovalRequirement(); // 승인 요구치
