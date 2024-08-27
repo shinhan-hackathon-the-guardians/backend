@@ -45,19 +45,24 @@ public class Transaction {
     private String status; // 요청의 최종 결과 -> 차단, 승인
 
     private int approveCount; // 승인된 요청 횟수
+    private int rejectCount; // 거절된 요청 횟수
 
     public void incrementApproveCount() {
         this.approveCount++;
     }
+    public void incrementRejectCount() {
+        this.rejectCount++;
+    }
 
     @Builder
-    public Transaction(User user, String transactionType, Long transactionBalance, Timestamp timestamp, String status, int approveCount) {
+    public Transaction(User user, String transactionType, Long transactionBalance, Timestamp timestamp, String status, int approveCount, int rejectCount) {
         this.user = user;
         this.transactionType = transactionType;
         this.transactionBalance = transactionBalance;
         this.timestamp = timestamp;
         this.status = status;
         this.approveCount = approveCount;
+        this.rejectCount = rejectCount;
     }
 
     // TODO: Transaction의 결과를 FCM으로 통지할 때 사용할 수도 있고, 아니면 그냥 임의의 값으로 전송해도 괜찮을 듯

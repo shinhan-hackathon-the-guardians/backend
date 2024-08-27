@@ -80,22 +80,26 @@ public class TransactionService {
                 // TODO: 승인 요청 알림 -- 여기서 끊고, Notification에 역할을 넘김
 
                 /*
-                 * Notification 로직
+                 * Notification 로직 or EventListener?
                  * -----------------
                  *
-                 * TODO: 승인 요청 결과 확인 : return int approveCount
-                 * TODO: if(거절 카운트와 비교 == 제한) {차단 알림 전송}
+                 * TODO: 승인 요청 결과 수신 :
+                 * TODO: transactionService.updateTransactionApproveCount() // Approve & Reject Count 증가
+                 * TODO: if(checkAlert) {
+                 * TODO:     Switch(transactionType) {Withdrawal, Transfer, Payment} // Transaction Type 확인:
+                 * TODO:     transactionService.executeWithdrawalTransaction() & // Transaction 실행 :
+                 * TODO:                        executeTransferTransaction() &
+                 * TODO:                        executePaymentTransaction()
+                 * TODO:     // 승인 알림 전송 & Transaction 종료 판정?
+                 * TODO: }
+                 * TODO: else if() {
+                 * TODO:     // 차단 알림 전송
+                 * TODO: }
                  * TODO: else {
-                 * TODO: ApproveCount 변경 : transactionService.updateTransactionApproveCount() 호출
-                 * TODO: Transaction Type 확인: Switch(transactionType) {Withdrawal, Transfer, Payment}
-                 * TODO: Transaction 실행 : transactionService.executeWithdrawalTransaction() &
-                 *                                            executeTransferTransaction() &
-                 *                                            executePaymentTransaction()
-                 * TODO: 승인 알림 전송
+                 * TODO:     // 아무 일도 없음
                  * TODO: }
                  *
-                 * TODO: 시간제한 확인 -> 어떻게 구현?
-                 *
+                 * TODO: 시간제한 확인 -> 어떻게 구현? -> @Scheduler?
                  */
             }
         }
@@ -171,6 +175,9 @@ public class TransactionService {
             // 출금
             accountService.updateAccountWithdrawal(user.getAccountNumber(), transaction.getTransactionBalance());
         }
+        // TODO: 이 로직을 분리할지에 대한 판단 필요
+        // TODO: else if((totalMangerCount - transaction.getRejectCount()) < approvalRequirement) {
+        // TODO: 거부 알림
     }
 
     // TODO: 승인 요구치에 따른 이체 진행 - DepositAccountNo를 받아야함, 수정 있을 수 있음
@@ -203,19 +210,25 @@ public class TransactionService {
         }
     }
 
-    // TODO: 현재 Transaction ApproveCount +1 증가
+    // TODO: 현재 Transaction Count 증가
     @Transactional
-    public int updateTransactionApproveCount(Long transactionId, ResponseStatus responseStatus) {
+    public Transaction updateTransactionApproveCount(Long transactionId, ResponseStatus responseStatus) {
         log.info("TransactionService.updateTransactionApproveCount() is called.");
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new RuntimeException("Transaction Not Found."));
 
         if(responseStatus.equals(ResponseStatus.APPROVE)) {
             transaction.incrementApproveCount();
-            transactionRepository.save(transaction);
+        }
+        else if(responseStatus.equals(ResponseStatus.DENY)) {
+            transaction.incrementRejectCount(); // TODO: 거절 Count 로직 추가 필요
+        }
+        else {
+            throw new RuntimeException("Failed to found response status.");
         }
 
-        return transaction.getApproveCount();
+        transactionRepository.save(transaction);
+        return transaction;
     }
 
     private Long getUserId() {
