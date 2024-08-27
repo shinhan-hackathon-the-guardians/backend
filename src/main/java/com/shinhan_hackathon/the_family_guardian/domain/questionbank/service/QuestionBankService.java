@@ -29,7 +29,12 @@ public class QuestionBankService {
         List<QuestionBank> questionBanks = questionBankRepository.findQuestion();
         List<QuestionResponse> responses = new ArrayList<>();
         for(QuestionBank questionBank : questionBanks){
-            responses.add(new QuestionResponse(questionBank.getAnswer(), questionBank.getQuestion()));
+            responses.add(new QuestionResponse(
+                    questionBank.getId(),
+                    questionBank.getAnswer(),
+                    questionBank.getQuestion(),
+                    questionBank.getExplanation())
+            );
         }
         return responses;
     }
