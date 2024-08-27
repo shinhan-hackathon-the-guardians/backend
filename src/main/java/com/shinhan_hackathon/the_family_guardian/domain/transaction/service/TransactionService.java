@@ -51,8 +51,7 @@ public class TransactionService {
 
         // TODO: 입금 결과에 대한 알림
         DepositInfo depositInfo = new DepositInfo(user.getName(), user.getAccountNumber(), depositRequest.transactionBalance());
-        String deviceToken = authUtil.getUserPrincipal().getDeviceToken();
-        fcmSender.sendMessage(deviceToken, "입금", depositInfo.toString());
+        fcmSender.sendMessage(user.getDeviceToken(), "입금", depositInfo.toString());
 
         log.info("Success to make a deposit.");
     }
