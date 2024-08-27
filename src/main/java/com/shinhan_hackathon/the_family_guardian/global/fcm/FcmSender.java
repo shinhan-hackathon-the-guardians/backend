@@ -5,14 +5,14 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
-import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.TransactionResultInfo;
+import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.NotificationBody;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.entity.TransactionType;
-import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 
@@ -53,6 +53,12 @@ public class FcmSender implements MessageSender {
                 throw new RuntimeException(e);
             }
         };
+    }
+
+    public void sendApprovalNotification(List<String> guardianDeviceTokenList, NotificationBody body) {
+        guardianDeviceTokenList.forEach(deviceToken ->
+                sendMessage(deviceToken, "승인 요청", body.toString())
+        );
     }
 
     public void sendPaymentSuccessMessage(String deviceToken, String senderAccountNumber, String receiverName, long transactionBalance) {
@@ -108,7 +114,7 @@ public class FcmSender implements MessageSender {
         );
     }
     private void sendTransactionResultMessage(String deviceToken, TransactionType txType, String senderAccount, String receiver, long transactionBalance, String txName, boolean isSuccess) {
-        TransactionResultInfo transactionResultInfo = new TransactionResultInfo(
+        NotificationBody notificationBody = new NotificationBody(
                 txType,
                 senderAccount,
                 receiver,
@@ -118,7 +124,7 @@ public class FcmSender implements MessageSender {
         sendMessage(
                 deviceToken,
                 txName + (isSuccess ? " 성공" : " 실패"),
-                transactionResultInfo.toString()
+                notificationBody.toString()
         );
     }
 }

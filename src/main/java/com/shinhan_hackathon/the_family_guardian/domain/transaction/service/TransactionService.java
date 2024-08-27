@@ -2,13 +2,16 @@ package com.shinhan_hackathon.the_family_guardian.domain.transaction.service;
 
 import com.shinhan_hackathon.the_family_guardian.bank.dto.response.AccountTransactionHistoryListResponse;
 import com.shinhan_hackathon.the_family_guardian.bank.service.AccountService;
+import com.shinhan_hackathon.the_family_guardian.domain.notification.entity.PaymentLimitType;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.entity.ResponseStatus;
+import com.shinhan_hackathon.the_family_guardian.domain.notification.service.NotificationService;
 import com.shinhan_hackathon.the_family_guardian.domain.payment.service.PaymentLimitService;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.*;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.entity.Transaction;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.entity.TransactionStatus;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.entity.TransactionType;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.repository.TransactionRepository;
+import com.shinhan_hackathon.the_family_guardian.domain.user.entity.Role;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import com.shinhan_hackathon.the_family_guardian.domain.user.service.UserService;
 import com.shinhan_hackathon.the_family_guardian.global.auth.dto.UserPrincipal;
@@ -16,7 +19,6 @@ import com.shinhan_hackathon.the_family_guardian.global.auth.dto.UserPrincipal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
-import com.shinhan_hackathon.the_family_guardian.global.auth.util.AuthUtil;
 import com.shinhan_hackathon.the_family_guardian.global.fcm.FcmSender;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +38,8 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final AccountService accountService;
     private final FcmSender fcmSender;
+    private final NotificationService notificationService;
+    private final List<Role> familyGuardianRole = List.of(Role.MANAGER, Role.OWNER);
 
     public List<TransactionResponse> getTransactionHistory(Long userId, Pageable pageable) {
         log.info("TransactionService.getTransactionHistory() is called.");
@@ -85,7 +89,8 @@ public class TransactionService {
         Long userId = getUserId();
         User user = userService.getUser(userId);
 
-        TransactionStatus transactionStatus = TransactionStatus.PENDING;
+        TransactionStatus transactionStatus = null;
+        PaymentLimitType paymentLimitType = null;
         // TODO: Rule Check
         if(paymentLimitService.checkMaxAmountLimit(userId, withdrawalRequest.transactionBalance())) {
             if(paymentLimitService.checkSingleTransactionLimit(userId, withdrawalRequest.transactionBalance())) { // 승인
@@ -95,6 +100,8 @@ public class TransactionService {
                 transactionStatus = TransactionStatus.APPROVE;
             }
             else  { // 단건 한도 초과
+                transactionStatus = TransactionStatus.PENDING;
+                paymentLimitType = PaymentLimitType.SINGLE_TRANSACTION_LIMIT;
                 // TODO: 승인 요청 알림 -- 여기서 끊고, Notification에 역할을 넘김
 
                 /*
@@ -120,6 +127,7 @@ public class TransactionService {
         else { // 총 한도 초과
             // TODO: 출금 거부 알림
             transactionStatus = TransactionStatus.REJECT;
+            paymentLimitType = PaymentLimitType.MAX_LIMIT_AMOUNT;
         }
 
         Transaction transaction = Transaction.builder()
@@ -132,13 +140,13 @@ public class TransactionService {
                 .build();
         transactionRepository.save(transaction);
 
-        if (transactionStatus.equals(TransactionStatus.APPROVE)) {
-            fcmSender.sendWithdrawalSuccessMessage(user.getDeviceToken(), user.getAccountNumber(), withdrawalRequest.transactionBalance());
-        } else {
-            fcmSender.sendWithdrawalFailMessage(user.getDeviceToken(), user.getAccountNumber(), withdrawalRequest.transactionBalance());
+
+        switch (transactionStatus) {
+            case APPROVE -> fcmSender.sendWithdrawalSuccessMessage(user.getDeviceToken(), user.getAccountNumber(), withdrawalRequest.transactionBalance());
+            case REJECT -> fcmSender.sendWithdrawalFailMessage(user.getDeviceToken(), user.getAccountNumber(), withdrawalRequest.transactionBalance());
+            case PENDING -> sendGuardianApprovalMessage(user, transaction, paymentLimitType);
         }
 
-        log.info("Success to withdraw account.");
     }
 
     // TODO: 이체
@@ -149,7 +157,8 @@ public class TransactionService {
         User user = userService.getUser(userId);
         String withdrawalAccountNumber = user.getAccountNumber();
 
-        TransactionStatus transactionStatus = TransactionStatus.PENDING;
+        TransactionStatus transactionStatus = null;
+        PaymentLimitType paymentLimitType = null;
         // TODO: Rule Check
         if(paymentLimitService.checkMaxAmountLimit(userId, transferRequest.transactionBalance())) {
             if(paymentLimitService.checkSingleTransactionLimit(userId, transferRequest.transactionBalance())) { // 승인
@@ -160,12 +169,15 @@ public class TransactionService {
             }
             else  { // 단건 한도 초과
                 // TODO: 승인 요청 알림 -- 여기서 끊고, Notification에 역할을 넘김
+                transactionStatus = TransactionStatus.PENDING;
+                paymentLimitType = PaymentLimitType.SINGLE_TRANSACTION_LIMIT;
 
             }
         }
         else { // 총 한도 초과
             // TODO: 이체 거부 알림
             transactionStatus = TransactionStatus.REJECT;
+            paymentLimitType = PaymentLimitType.MAX_LIMIT_AMOUNT;
         }
 
         Transaction transaction = Transaction.builder()
@@ -179,12 +191,21 @@ public class TransactionService {
                 .build();
         transactionRepository.save(transaction);
 
-        if (transactionStatus.equals(TransactionStatus.APPROVE)) {
-            fcmSender.sendTransferSuccessMessage(user.getDeviceToken(), withdrawalAccountNumber, transferRequest.depositAccountNumber(), transferRequest.transactionBalance());
-        } else {
-            fcmSender.sendTransferFailMessage(user.getDeviceToken(), withdrawalAccountNumber, transferRequest.depositAccountNumber(), transferRequest.transactionBalance());
+        switch (transactionStatus) {
+            case APPROVE -> fcmSender.sendTransferSuccessMessage(user.getDeviceToken(), withdrawalAccountNumber, transferRequest.depositAccountNumber(), transferRequest.transactionBalance());
+            case REJECT -> fcmSender.sendTransferFailMessage(user.getDeviceToken(), withdrawalAccountNumber, transferRequest.depositAccountNumber(), transferRequest.transactionBalance());
+            case PENDING -> sendGuardianApprovalMessage(user, transaction, paymentLimitType);
         }
-        log.info("Success to transfer account.");
+    }
+
+    private void sendGuardianApprovalMessage(User user, Transaction transaction, PaymentLimitType paymentLimitType) {
+        TransactionInfo transactionInfo = new TransactionInfo(user, transaction, paymentLimitType);
+        NotificationBody notificationBody = notificationService.saveNotification(transactionInfo);
+
+        List<String> guardianDeviceToken = user.getFamily().getUsers().stream()
+                .filter(familyUser -> familyGuardianRole.contains(familyUser.getRole()))
+                .map(familyGuardian -> familyGuardian.getDeviceToken()).toList();
+        fcmSender.sendApprovalNotification(guardianDeviceToken, notificationBody);
     }
 
     // TODO: 결제 : 승인이 필요한 요청, 아닌 요청을 어떻게 구분?
@@ -194,7 +215,8 @@ public class TransactionService {
         Long userId = getUserId();
         User user = userService.getUser(userId);
 
-        TransactionStatus transactionStatus = TransactionStatus.PENDING;
+        TransactionStatus transactionStatus = null;
+        PaymentLimitType paymentLimitType = null;
         // TODO: Rule Check
         if(paymentLimitService.checkMaxAmountLimit(userId, paymentRequest.transactionBalance())) {
             if(paymentLimitService.checkSingleTransactionLimit(userId, paymentRequest.transactionBalance())) { // 승인
@@ -204,12 +226,15 @@ public class TransactionService {
             }
             else  { // 단건 한도 초과
                 // TODO: 승인 요청 알림 -- 여기서 끊고, Notification에 역할을 넘김
+                transactionStatus = TransactionStatus.PENDING;
+                paymentLimitType = PaymentLimitType.SINGLE_TRANSACTION_LIMIT;
 
             }
         }
         else { // 총 한도 초과
             // TODO: 결제 거부 알림
             transactionStatus = TransactionStatus.REJECT;
+            paymentLimitType = PaymentLimitType.MAX_LIMIT_AMOUNT;
         }
 
         Transaction transaction = Transaction.builder()
@@ -223,12 +248,12 @@ public class TransactionService {
                 .build();
         transactionRepository.save(transaction);
 
-        if (transactionStatus.equals(TransactionStatus.APPROVE)) {
-            fcmSender.sendPaymentSuccessMessage(user.getDeviceToken(), user.getAccountNumber(), paymentRequest.businessName(), paymentRequest.transactionBalance());
-        } else {
-            fcmSender.sendPaymentFailMessage(user.getDeviceToken(), user.getAccountNumber(), paymentRequest.businessName(), paymentRequest.transactionBalance());
+
+        switch (transactionStatus) {
+            case APPROVE -> fcmSender.sendPaymentSuccessMessage(user.getDeviceToken(), user.getAccountNumber(), paymentRequest.businessName(), paymentRequest.transactionBalance());
+            case REJECT -> fcmSender.sendPaymentFailMessage(user.getDeviceToken(), user.getAccountNumber(), paymentRequest.businessName(), paymentRequest.transactionBalance());
+            case PENDING -> sendGuardianApprovalMessage(user, transaction, paymentLimitType);
         }
-        log.info("Success to payment account.");
     }
 
     // TODO: REFUSE에 의해 승인 요구치에 절대 도달하지 못하는 경우
