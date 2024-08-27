@@ -21,6 +21,7 @@ public class NotificationService {
     public NotificationBody saveNotification(TransactionInfo transactionInfo) {
 
         NotificationBody notificationBody = new NotificationBody(
+                transactionInfo.transaction().getId(),
                 transactionInfo.transaction().getTransactionType(),
                 transactionInfo.user().getAccountNumber(),
                 transactionInfo.transaction().getReceiver(),
