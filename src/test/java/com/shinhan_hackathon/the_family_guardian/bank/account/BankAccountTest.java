@@ -11,8 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 @Slf4j
-public class
-BankAccountTest {
+public class BankAccountTest {
     @Autowired
     private AccountService accountService;
 
