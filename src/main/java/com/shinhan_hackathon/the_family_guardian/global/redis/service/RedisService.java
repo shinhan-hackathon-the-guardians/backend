@@ -1,4 +1,4 @@
-package com.shinhan_hackathon.the_family_guardian.global.service;
+package com.shinhan_hackathon.the_family_guardian.global.redis.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
