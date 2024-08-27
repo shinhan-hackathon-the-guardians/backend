@@ -6,10 +6,15 @@ import com.shinhan_hackathon.the_family_guardian.domain.notification.entity.Resp
 import com.shinhan_hackathon.the_family_guardian.domain.payment.service.PaymentLimitService;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.*;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.entity.Transaction;
+import com.shinhan_hackathon.the_family_guardian.domain.transaction.entity.TransactionStatus;
+import com.shinhan_hackathon.the_family_guardian.domain.transaction.entity.TransactionType;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.repository.TransactionRepository;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import com.shinhan_hackathon.the_family_guardian.domain.user.service.UserService;
 import com.shinhan_hackathon.the_family_guardian.global.auth.dto.UserPrincipal;
+
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 import com.shinhan_hackathon.the_family_guardian.global.auth.util.AuthUtil;
 import com.shinhan_hackathon.the_family_guardian.global.fcm.FcmSender;
@@ -31,7 +36,6 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final AccountService accountService;
     private final FcmSender fcmSender;
-    private final AuthUtil authUtil;
 
     public List<TransactionResponse> getTransactionHistory(Long userId, Pageable pageable) {
         log.info("TransactionService.getTransactionHistory() is called.");
@@ -45,12 +49,21 @@ public class TransactionService {
     }
 
     // TODO: 입금
+    @Transactional
     public void updateDeposit(DepositRequest depositRequest) {
         log.info("TransactionService.updateDeposit() is called.");
         Long userId = getUserId();
         User user = userService.getUser(userId);
         accountService.updateAccountDeposit(user.getAccountNumber(), depositRequest.transactionBalance());
 
+        Transaction transaction = Transaction.builder()
+                .transactionType(TransactionType.DEPOSIT)
+                .timestamp(Timestamp.from(Instant.now()))
+                .user(user)
+                .transactionBalance(depositRequest.transactionBalance())
+                .status(TransactionStatus.APPROVE)
+                .build();
+        transactionRepository.save(transaction);
         // TODO: 입금 결과에 대한 알림
         DepositInfo depositInfo = new DepositInfo(user.getName(), user.getAccountNumber(), depositRequest.transactionBalance());
         fcmSender.sendMessage(user.getDeviceToken(), "입금", depositInfo.toString());
@@ -66,19 +79,20 @@ public class TransactionService {
      */
 
     // TODO: 출금
+    @Transactional
     public void updateWithdrawal(WithdrawalRequest withdrawalRequest) {
         log.info("TransactionService.updateWithdrawal() is called.");
         Long userId = getUserId();
         User user = userService.getUser(userId);
 
+        TransactionStatus transactionStatus = TransactionStatus.PENDING;
         // TODO: Rule Check
         if(paymentLimitService.checkMaxAmountLimit(userId, withdrawalRequest.transactionBalance())) {
             if(paymentLimitService.checkSingleTransactionLimit(userId, withdrawalRequest.transactionBalance())) { // 승인
                 accountService.updateAccountDeposit(user.getAccountNumber(), withdrawalRequest.transactionBalance()); // 출금
                 // TODO: 출금 성공 알림
 
-                fcmSender.sendWithdrawalSuccessMessage(user.getDeviceToken(), user.getAccountNumber(), withdrawalRequest.transactionBalance());
-
+                transactionStatus = TransactionStatus.APPROVE;
             }
             else  { // 단건 한도 초과
                 // TODO: 승인 요청 알림 -- 여기서 끊고, Notification에 역할을 넘김
@@ -105,6 +119,22 @@ public class TransactionService {
         }
         else { // 총 한도 초과
             // TODO: 출금 거부 알림
+            transactionStatus = TransactionStatus.REJECT;
+        }
+
+        Transaction transaction = Transaction.builder()
+                .transactionType(TransactionType.WITHDRAWAL)
+                .timestamp(Timestamp.from(Instant.now()))
+                .user(user)
+                .transactionBalance(withdrawalRequest.transactionBalance())
+                .status(transactionStatus)
+                .approveCount(0)
+                .build();
+        transactionRepository.save(transaction);
+
+        if (transactionStatus.equals(TransactionStatus.APPROVE)) {
+            fcmSender.sendWithdrawalSuccessMessage(user.getDeviceToken(), user.getAccountNumber(), withdrawalRequest.transactionBalance());
+        } else {
             fcmSender.sendWithdrawalFailMessage(user.getDeviceToken(), user.getAccountNumber(), withdrawalRequest.transactionBalance());
         }
 
@@ -112,20 +142,21 @@ public class TransactionService {
     }
 
     // TODO: 이체
+    @Transactional
     public void updateTransfer(TransferRequest transferRequest) {
         log.info("TransactionService.updateTransfer() is called.");
         Long userId = getUserId();
-//        String withdrawalAccountNumber = userService.getAccountNumber(userId);
         User user = userService.getUser(userId);
         String withdrawalAccountNumber = user.getAccountNumber();
 
+        TransactionStatus transactionStatus = TransactionStatus.PENDING;
         // TODO: Rule Check
         if(paymentLimitService.checkMaxAmountLimit(userId, transferRequest.transactionBalance())) {
             if(paymentLimitService.checkSingleTransactionLimit(userId, transferRequest.transactionBalance())) { // 승인
                 accountService.updateAccountTransfer(transferRequest.depositAccountNumber(), withdrawalAccountNumber, transferRequest.transactionBalance()); // 이체
 
                 // TODO: 이체 성공 알림
-                fcmSender.sendTransferSuccessMessage(user.getDeviceToken(), withdrawalAccountNumber, transferRequest.depositAccountNumber(), transferRequest.transactionBalance());
+                transactionStatus = TransactionStatus.APPROVE;
             }
             else  { // 단건 한도 초과
                 // TODO: 승인 요청 알림 -- 여기서 끊고, Notification에 역할을 넘김
@@ -134,25 +165,42 @@ public class TransactionService {
         }
         else { // 총 한도 초과
             // TODO: 이체 거부 알림
-            fcmSender.sendTransferFailMessage(user.getDeviceToken(), withdrawalAccountNumber, transferRequest.depositAccountNumber(), transferRequest.transactionBalance());
+            transactionStatus = TransactionStatus.REJECT;
         }
 
+        Transaction transaction = Transaction.builder()
+                .transactionType(TransactionType.TRANSFER)
+                .timestamp(Timestamp.from(Instant.now()))
+                .user(user)
+                .transactionBalance(transferRequest.transactionBalance())
+                .status(transactionStatus)
+                .approveCount(0)
+                .receiver(transferRequest.depositAccountNumber())
+                .build();
+        transactionRepository.save(transaction);
+
+        if (transactionStatus.equals(TransactionStatus.APPROVE)) {
+            fcmSender.sendTransferSuccessMessage(user.getDeviceToken(), withdrawalAccountNumber, transferRequest.depositAccountNumber(), transferRequest.transactionBalance());
+        } else {
+            fcmSender.sendTransferFailMessage(user.getDeviceToken(), withdrawalAccountNumber, transferRequest.depositAccountNumber(), transferRequest.transactionBalance());
+        }
         log.info("Success to transfer account.");
     }
 
     // TODO: 결제 : 승인이 필요한 요청, 아닌 요청을 어떻게 구분?
+    @Transactional
     public void updatePayment(PaymentRequest paymentRequest) {
         log.info("TransactionService.updatePayment() is called.");
         Long userId = getUserId();
-//        String withdrawalAccountNumber = userService.getAccountNumber(userId);
         User user = userService.getUser(userId);
 
+        TransactionStatus transactionStatus = TransactionStatus.PENDING;
         // TODO: Rule Check
         if(paymentLimitService.checkMaxAmountLimit(userId, paymentRequest.transactionBalance())) {
             if(paymentLimitService.checkSingleTransactionLimit(userId, paymentRequest.transactionBalance())) { // 승인
                 accountService.updateAccountDeposit(user.getAccountNumber(), paymentRequest.transactionBalance()); // 결제
                 // TODO: 결제 성공 알림
-                fcmSender.sendPaymentSuccessMessage(user.getDeviceToken(), user.getAccountNumber(), paymentRequest.businessName(), paymentRequest.transactionBalance());
+                transactionStatus = TransactionStatus.APPROVE;
             }
             else  { // 단건 한도 초과
                 // TODO: 승인 요청 알림 -- 여기서 끊고, Notification에 역할을 넘김
@@ -161,9 +209,25 @@ public class TransactionService {
         }
         else { // 총 한도 초과
             // TODO: 결제 거부 알림
-            fcmSender.sendPaymentFailMessage(user.getDeviceToken(), user.getAccountNumber(), paymentRequest.businessName(), paymentRequest.transactionBalance());
+            transactionStatus = TransactionStatus.REJECT;
         }
 
+        Transaction transaction = Transaction.builder()
+                .transactionType(TransactionType.PAYMENT)
+                .timestamp(Timestamp.from(Instant.now()))
+                .user(user)
+                .transactionBalance(paymentRequest.transactionBalance())
+                .status(transactionStatus)
+                .approveCount(0)
+                .receiver(paymentRequest.businessName())
+                .build();
+        transactionRepository.save(transaction);
+
+        if (transactionStatus.equals(TransactionStatus.APPROVE)) {
+            fcmSender.sendPaymentSuccessMessage(user.getDeviceToken(), user.getAccountNumber(), paymentRequest.businessName(), paymentRequest.transactionBalance());
+        } else {
+            fcmSender.sendPaymentFailMessage(user.getDeviceToken(), user.getAccountNumber(), paymentRequest.businessName(), paymentRequest.transactionBalance());
+        }
         log.info("Success to payment account.");
     }
 
@@ -225,7 +289,7 @@ public class TransactionService {
 
         if(responseStatus.equals(ResponseStatus.APPROVE)) {
             transaction.incrementApproveCount();
-            transactionRepository.save(transaction);
+            transactionRepository.save(transaction);    // 불필요 코드
         }
 
         return transaction.getApproveCount();
@@ -236,6 +300,4 @@ public class TransactionService {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         return userPrincipal.user().getId();
     }
-
-
 }
