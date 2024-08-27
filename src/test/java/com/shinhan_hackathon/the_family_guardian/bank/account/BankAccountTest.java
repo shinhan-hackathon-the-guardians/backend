@@ -11,7 +11,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 @Slf4j
-public class BankAccountTest {
+public class
+BankAccountTest {
     @Autowired
     private AccountService accountService;
 
@@ -86,7 +87,7 @@ public class BankAccountTest {
     @Test
     @DisplayName("9_계좌_입금")
     void updateAccountDeposit() {
-        String accountNo = "0885135436359049";
+        String accountNo = "0886372305629122";
         Long transactionBalance = 100000L;
         log.info("{}", accountService.updateAccountDeposit(accountNo, transactionBalance));
     }
