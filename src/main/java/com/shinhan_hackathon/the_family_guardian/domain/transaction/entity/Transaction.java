@@ -1,7 +1,6 @@
 package com.shinhan_hackathon.the_family_guardian.domain.transaction.entity;
 
 import com.shinhan_hackathon.the_family_guardian.bank.dto.response.AccountTransactionHistoryListResponse;
-import com.shinhan_hackathon.the_family_guardian.bank.dto.response.AccountTransactionHistoryResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import jakarta.persistence.*;
 
@@ -19,9 +18,6 @@ import lombok.ToString;
 @ToString
 public class Transaction {
 
-    // TODO: 제공되는 API에 맞게 수정할 필요 있음
-    // TODO: 현재 Notification의 승인 요청 결과에 대해 승인된 개수 보관 필요, approvedCount 필드 사용?
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -35,26 +31,31 @@ public class Transaction {
     private TransactionType transactionType;
 
     @Column(nullable = false)
-    private Long amount;
+    private Long transactionBalance;
 
     @Column(nullable = false)
-    private Timestamp timestamp;
+    private Timestamp timestamp; // 요청을 받은 Timestamp, Timeout 확인을 위해 사용
 
     @Column(nullable = false, length = 20)
-    private String status;
+    private String status; // 요청의 최종 결과 -> 차단, 승인
 
     private int approveCount; // 승인된 요청 횟수
 
-    @Builder
-    public Transaction(User user, TransactionType transactionType, Long amount, Timestamp timestamp, String status) {
-        this.user = user;
-        this.transactionType = transactionType;
-        this.amount = amount;
-        this.timestamp = timestamp;
-        this.status = status;
-        this.approveCount = 0;
+    public void incrementApproveCount() {
+        this.approveCount++;
     }
 
+    @Builder
+    public Transaction(User user, TransactionType transactionType, Long transactionBalance, Timestamp timestamp, String status, int approveCount) {
+        this.user = user;
+        this.transactionType = transactionType;
+        this.transactionBalance = transactionBalance;
+        this.timestamp = timestamp;
+        this.status = status;
+        this.approveCount = approveCount;
+    }
+
+    // TODO: Transaction의 결과를 FCM으로 통지할 때 사용할 수도 있고, 아니면 그냥 임의의 값으로 전송해도 괜찮을 듯
     public static Transaction toTransaction(AccountTransactionHistoryListResponse.Rec.Transaction transaction) {
         return Transaction.builder()
 
