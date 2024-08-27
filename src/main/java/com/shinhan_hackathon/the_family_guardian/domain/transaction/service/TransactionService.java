@@ -2,26 +2,32 @@ package com.shinhan_hackathon.the_family_guardian.domain.transaction.service;
 
 import com.shinhan_hackathon.the_family_guardian.bank.dto.response.AccountTransactionHistoryListResponse;
 import com.shinhan_hackathon.the_family_guardian.bank.service.AccountService;
+import com.shinhan_hackathon.the_family_guardian.domain.notification.entity.ResponseStatus;
 import com.shinhan_hackathon.the_family_guardian.domain.payment.service.PaymentLimitService;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.DepositRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.PaymentRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.TransactionResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.TransferRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.WithdrawalRequest;
+import com.shinhan_hackathon.the_family_guardian.domain.transaction.entity.Transaction;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.repository.TransactionRepository;
+import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import com.shinhan_hackathon.the_family_guardian.domain.user.service.UserService;
 import com.shinhan_hackathon.the_family_guardian.global.auth.dto.UserPrincipal;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class TransactionService {
     private final UserService userService;
     private final PaymentLimitService paymentLimitService;
@@ -77,10 +83,18 @@ public class TransactionService {
                  * Notification 로직
                  * -----------------
                  *
-                 * TODO: 승인 요청 결과
-                 * if() {} // 승인 요청 허가 -> 출금 -> 출금 완료 알림
-                 * TODO: 허가 시 출금을 어떻게 구현? -> Notification 쪽에서 해야할듯
-                 * else {} // 승인 요청 불허 -> 출금 거부 알림
+                 * TODO: 승인 요청 결과 확인 : return int approveCount
+                 * TODO: if(거절 카운트와 비교 == 제한) {차단 알림 전송}
+                 * TODO: else {
+                 * TODO: ApproveCount 변경 : transactionService.updateTransactionApproveCount() 호출
+                 * TODO: Transaction Type 확인: Switch(transactionType) {Withdrawal, Transfer, Payment}
+                 * TODO: Transaction 실행 : transactionService.executeWithdrawalTransaction() &
+                 *                                            executeTransferTransaction() &
+                 *                                            executePaymentTransaction()
+                 * TODO: 승인 알림 전송
+                 * TODO: }
+                 *
+                 * TODO: 시간제한 확인 -> 어떻게 구현?
                  *
                  */
             }
@@ -140,9 +154,75 @@ public class TransactionService {
         log.info("Success to payment account.");
     }
 
+    // TODO: REFUSE에 의해 승인 요구치에 절대 도달하지 못하는 경우
+    // TODO: 시간제한에 걸려 자동으로 차단되는 경우
+
+
+    // TODO: 승인 요구치에 따른 출금 진행
+    public void executeWithdrawalTransaction(Long transactionId) {
+        log.info("TransactionService.executeWithdrawalTransaction() is called.");
+        // Transaction 정보 조회
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException("Transaction Not Found."));
+        User user = transaction.getUser();
+        Integer approvalRequirement = user.getFamily().getApprovalRequirement(); // 승인 요구치
+
+        if(transaction.getApproveCount() >= approvalRequirement) { // 승인 요구치에 도달하면
+            // 출금
+            accountService.updateAccountWithdrawal(user.getAccountNumber(), transaction.getTransactionBalance());
+        }
+    }
+
+    // TODO: 승인 요구치에 따른 이체 진행 - DepositAccountNo를 받아야함, 수정 있을 수 있음
+    public void executeTransferTransaction(Long transactionId, String depositAccountNo) {
+        log.info("TransactionService.executeTransferTransaction() is called.");
+        // Transaction 정보 조회
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException("Transaction Not Found."));
+        User user = transaction.getUser();
+        Integer approvalRequirement = user.getFamily().getApprovalRequirement(); // 승인 요구치
+
+        if(transaction.getApproveCount() >= approvalRequirement) { // 승인 요구치에 도달하면
+            // 이체
+            accountService.updateAccountTransfer(depositAccountNo, user.getAccountNumber(), transaction.getTransactionBalance());
+        }
+    }
+
+    // TODO: 승인 요구치에 따른 결제 진행
+    public void executePaymentTransaction(Long transactionId) {
+        log.info("TransactionService.executePaymentTransaction() is called.");
+        // Transaction 정보 조회
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException("Transaction Not Found."));
+        User user = transaction.getUser();
+        Integer approvalRequirement = user.getFamily().getApprovalRequirement(); // 승인 요구치
+
+        if(transaction.getApproveCount() >= approvalRequirement) { // 승인 요구치에 도달하면
+            // 이체
+            accountService.updateAccountWithdrawal(user.getAccountNumber(), transaction.getTransactionBalance());
+        }
+    }
+
+    // TODO: 현재 Transaction ApproveCount +1 증가
+    @Transactional
+    public int updateTransactionApproveCount(Long transactionId, ResponseStatus responseStatus) {
+        log.info("TransactionService.updateTransactionApproveCount() is called.");
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException("Transaction Not Found."));
+
+        if(responseStatus.equals(ResponseStatus.APPROVE)) {
+            transaction.incrementApproveCount();
+            transactionRepository.save(transaction);
+        }
+
+        return transaction.getApproveCount();
+    }
+
     private Long getUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         return userPrincipal.user().getId();
     }
+
+
 }
