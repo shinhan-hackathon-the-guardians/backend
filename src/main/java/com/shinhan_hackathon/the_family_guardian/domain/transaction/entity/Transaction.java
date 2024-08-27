@@ -43,8 +43,8 @@ public class Transaction {
 
     private String receiver;
 
-    public void incrementApproveCount() {
-        this.approveCount++;
+    public int incrementApproveCount() {
+        return ++this.approveCount;
     }
 
     @Builder
