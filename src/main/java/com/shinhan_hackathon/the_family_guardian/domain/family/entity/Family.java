@@ -29,6 +29,9 @@ public class Family {
     @OneToMany(mappedBy = "family")
     private List<User> users;
 
+    @Column(nullable = false)
+    private int totalManagerCount; // TODO: Default로 Owner가 있으니까 1? default 0에서 그룹 생성할 때 owner 등록하면서 +1?
+
     @Builder
     public Family(String name, String description, int approvalRequirement, List<User> users) {
         this.name = name;
