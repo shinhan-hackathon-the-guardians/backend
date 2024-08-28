@@ -162,7 +162,8 @@ public class FamilyService {
         }
 
         User target = userService.getUser(targetUserId);
-        if (!target.getFamily().getId().equals(familyId)) {
+        if (target.getFamily() == null ||
+                !target.getFamily().getId().equals(familyId)) {
             throw new RuntimeException("같은 가족이 아닌 유저입니다.");
         }
 
