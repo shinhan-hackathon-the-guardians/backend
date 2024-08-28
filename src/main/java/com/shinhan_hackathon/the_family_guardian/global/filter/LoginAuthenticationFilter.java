@@ -34,7 +34,7 @@ public class LoginAuthenticationFilter extends AbstractAuthenticationProcessingF
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
         String method = request.getMethod();
         if (method == null || !method.equals(HttpMethod.POST.name())) {
-            throw new RuntimeException();
+            throw new RuntimeException("잘못된 HTTP Method 입니다.");
         }
 
         ServletInputStream inputStream = request.getInputStream();

@@ -1,7 +1,6 @@
 package com.shinhan_hackathon.the_family_guardian.domain.user.entity;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 import com.shinhan_hackathon.the_family_guardian.domain.family.entity.Family;
 
@@ -59,10 +58,11 @@ public class User {
 	@Enumerated(EnumType.STRING)
 	private Role role; // 패밀리 내부 권한: 'member' 또는 'guardian'
 
+	private String deviceToken;
 
 	@Builder
 	public User(String username, String password, String name, Gender gender, LocalDate birthDate, String phone,
-				String accountNumber, Level level, Family family, String relationship, Role role) {
+				String accountNumber, Level level, Family family, String relationship, Role role, String deviceToken) {
 		this.username = username;
 		this.password = password;
 		this.name = name;
@@ -74,6 +74,7 @@ public class User {
 		this.family = family;
 		this.relationship = relationship;
 		this.role = role;
+		this.deviceToken = deviceToken;
 	}
 
 	public Family updateFamily(Family family) {
@@ -85,4 +86,12 @@ public class User {
 		this.role = role;
 		return this.role;
 	}
+
+	public void updateLevel(Level level) {
+		this.level = level;
+	}
+
+    public String updateDeviceToken(String deviceToken) {
+        return this.deviceToken = deviceToken;
+    }
 }

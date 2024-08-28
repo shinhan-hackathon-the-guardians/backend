@@ -1,19 +1,15 @@
 package com.shinhan_hackathon.the_family_guardian.domain.chatbot.controller;
 
-import com.shinhan_hackathon.the_family_guardian.domain.chatbot.entity.ChatMessage;
-import com.shinhan_hackathon.the_family_guardian.domain.chatbot.response.ChatHistoryResponse;
-import com.shinhan_hackathon.the_family_guardian.domain.chatbot.response.ChatHistoryResponseWrapper;
+import com.shinhan_hackathon.the_family_guardian.domain.chatbot.dto.response.ChatHistoryResponseWrapper;
 import com.shinhan_hackathon.the_family_guardian.domain.chatbot.service.ChatService;
 import com.shinhan_hackathon.the_family_guardian.global.auth.dto.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.vertexai.gemini.VertexAiGeminiChatModel;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor

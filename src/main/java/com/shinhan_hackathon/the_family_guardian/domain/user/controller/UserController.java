@@ -2,9 +2,13 @@ package com.shinhan_hackathon.the_family_guardian.domain.user.controller;
 
 import com.shinhan_hackathon.the_family_guardian.domain.user.dto.*;
 import com.shinhan_hackathon.the_family_guardian.domain.user.service.UserService;
+import com.shinhan_hackathon.the_family_guardian.global.auth.util.AuthUtil;
+import com.shinhan_hackathon.the_family_guardian.global.fcm.FcmSender;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,4 +42,9 @@ public class UserController {
         return ResponseEntity.ok(accountAuthSendResponse);
     }
 
+    @PostMapping("/deviceToken")
+    public ResponseEntity<UpdateDeviceTokenResponse> updateDeviceToken(@RequestBody UpdateDeviceTokenRequest updateDeviceTokenRequest) {
+        UpdateDeviceTokenResponse updateDeviceTokenResponse = userService.setDeviceToken(updateDeviceTokenRequest.deviceToken());
+        return ResponseEntity.ok(updateDeviceTokenResponse);
+    }
 }
