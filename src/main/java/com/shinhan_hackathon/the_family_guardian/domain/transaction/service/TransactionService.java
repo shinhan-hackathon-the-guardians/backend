@@ -274,6 +274,7 @@ public class TransactionService {
 
 
     // TODO: 승인 요구치에 따른 출금 진행
+    @Transactional
     @EventListener(WithdrawalApproveEvent.class)
     public void executeWithdrawalTransaction(WithdrawalApproveEvent event) {
         log.info("TransactionService.executeWithdrawalTransaction() is called.");
@@ -286,17 +287,20 @@ public class TransactionService {
         if(transaction.getApproveCount() >= approvalRequirement) { // 승인 요구치에 도달하면
             // 출금
             accountService.updateAccountWithdrawal(user.getAccountNumber(), transaction.getTransactionBalance());
+            transaction.updateTransactionStatus(TransactionStatus.APPROVE);
             fcmSender.sendWithdrawalSuccessMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getTransactionBalance());
             log.info("Success to execute withdrawal. [Transaction-ID: {}]", transaction.getId());
         }
         else if ((user.getFamily().getTotalManagerCount() - transaction.getRejectCount()) < approvalRequirement) {
             //  거부 알림
+            transaction.updateTransactionStatus(TransactionStatus.REJECT);
             fcmSender.sendWithdrawalFailMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getTransactionBalance());
             log.info("Rejected to execute withdrawal. [Transaction-ID: {}]", transaction.getId());
         }
     }
 
-    // TODO: 승인 요구치에 따른 이체 진행 - DepositAccountNo를 받아야함, 수정 있을 수 있음
+    // TODO: 승인 요구치에 따른 이체 진행
+    @Transactional
     @EventListener(TransferApproveEvent.class)
     public void executeTransferTransaction(TransferApproveEvent event) {
         log.info("TransactionService.executeTransferTransaction() is called.");
@@ -309,17 +313,20 @@ public class TransactionService {
         if(transaction.getApproveCount() >= approvalRequirement) { // 승인 요구치에 도달하면
             // 이체
             accountService.updateAccountTransfer(transaction.getReceiver(), user.getAccountNumber(), transaction.getTransactionBalance());
+            transaction.updateTransactionStatus(TransactionStatus.APPROVE);
             fcmSender.sendTransferSuccessMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getReceiver() ,transaction.getTransactionBalance());
             log.info("Success to execute transfer. [Transaction-ID: {}]", transaction.getId());
         }
         else if ((user.getFamily().getTotalManagerCount() - transaction.getRejectCount()) < approvalRequirement) {
             //  거부 알림
+            transaction.updateTransactionStatus(TransactionStatus.REJECT);
             fcmSender.sendTransferFailMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getReceiver(), transaction.getTransactionBalance());
             log.info("Rejected to execute transfer. [Transaction-ID: {}]", transaction.getId());
         }
     }
 
     // TODO: 승인 요구치에 따른 결제 진행
+    @Transactional
     @EventListener(PaymentApproveEvent.class)
     public void executePaymentTransaction(PaymentApproveEvent event) {
         log.info("TransactionService.executePaymentTransaction() is called.");
@@ -332,11 +339,13 @@ public class TransactionService {
         if(transaction.getApproveCount() >= approvalRequirement) { // 승인 요구치에 도달하면
             // 이체
             accountService.updateAccountWithdrawal(user.getAccountNumber(), transaction.getTransactionBalance());
+            transaction.updateTransactionStatus(TransactionStatus.APPROVE);
             fcmSender.sendPaymentSuccessMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getReceiver(), transaction.getTransactionBalance());
             log.info("Success to execute payment. [Transaction-ID: {}]", transaction.getId());
         }
         else if ((user.getFamily().getTotalManagerCount() - transaction.getRejectCount()) < approvalRequirement) {
             //  거부 알림
+            transaction.updateTransactionStatus(TransactionStatus.REJECT);
             fcmSender.sendPaymentFailMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getReceiver(), transaction.getTransactionBalance());
             log.info("Rejected to execute payment. [Transaction-ID: {}]", transaction.getId());
         }
