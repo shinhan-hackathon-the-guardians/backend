@@ -61,6 +61,7 @@ public class FcmSender implements MessageSender {
         );
     }
 
+    // public: FCM 접근 메서드
     public void sendPaymentSuccessMessage(String deviceToken, String senderAccountNumber, String receiverName, long transactionBalance) {
         sendPaymentResultMessage(deviceToken, senderAccountNumber, receiverName, transactionBalance, true);
     }
@@ -80,6 +81,8 @@ public class FcmSender implements MessageSender {
         sendWithdrawalResultMessage(deviceToken, userAccountNumber, transactionBalance, false);
     }
 
+
+    // private: FCM 전송 메서드 호출
     private void sendPaymentResultMessage(String deviceToken, String senderAccountNumber, String receiver, long transactionBalance, boolean isSuccess) {
         sendTransactionResultMessage(
                 deviceToken,
@@ -113,6 +116,8 @@ public class FcmSender implements MessageSender {
                 isSuccess
         );
     }
+
+    // FCM 전송 메서드
     private void sendTransactionResultMessage(String deviceToken, TransactionType txType, String senderAccount, String receiver, long transactionBalance, String txName, boolean isSuccess) {
         NotificationBody notificationBody = new NotificationBody(
                 txType,
