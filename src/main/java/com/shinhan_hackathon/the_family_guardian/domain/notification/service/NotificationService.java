@@ -1,19 +1,19 @@
 package com.shinhan_hackathon.the_family_guardian.domain.notification.service;
 
-import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.NotificationReplyRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.NotificationReplyResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.entity.Notification;
+import com.shinhan_hackathon.the_family_guardian.domain.notification.entity.ResponseStatus;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.repository.NotificationRepository;
-import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.TransactionInfo;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.NotificationBody;
+import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.TransactionInfo;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.entity.TransactionStatus;
+import com.shinhan_hackathon.the_family_guardian.domain.transaction.service.TransactionService;
 import com.shinhan_hackathon.the_family_guardian.global.event.EventPublisher;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -23,6 +23,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final EventPublisher eventPublisher;
+    private final TransactionService transactionService;
 
     @Transactional
     public NotificationBody saveNotification(TransactionInfo transactionInfo) {
@@ -48,6 +49,7 @@ public class NotificationService {
         return notificationBody;
     }
 
+    @Transactional
     public NotificationReplyResponse reflectReply(Long notificationId, Boolean isApprove) {
         /**
          * 가디언의 응답을 반영
@@ -60,22 +62,17 @@ public class NotificationService {
         String eventTrackingId = UUID.randomUUID().toString();
         TransactionStatus transactionStatus = TransactionStatus.PENDING;
         int approveCount = notification.getTransaction().getApproveCount();
-        int rejectCount = 1;    // TODO: notification.getTransaction.getRejectCount();
+        int rejectCount = notification.getTransaction().getRejectCount();
+
+        ResponseStatus responseStatus = isApprove ? ResponseStatus.APPROVE : ResponseStatus.REJECT;
+        transactionService.updateTransactionApproveCount(notification.getTransaction().getId(), responseStatus);
 
         if (isApprove) {
-            // TODO: NotificationResponseStatus Entity의 response 업데이트
-            approveCount = notification.getTransaction().incrementApproveCount();
-            if (isUpToApprove(approveCount)) {
-                eventPublisher.publishTransactionApproveEvent(eventTrackingId, notificationId);
-                transactionStatus = TransactionStatus.APPROVE;
-            }
+            eventPublisher.publishTransactionApproveEvent(eventTrackingId, notificationId);
+            transactionStatus = TransactionStatus.APPROVE;
         } else {
-            // TODO: NotificationResponseStatus Entity의 response 업데이트
-            rejectCount = 1;    // TODO: 거절횟수도 기록
-            if (isUpToReject(rejectCount)) {
-                eventPublisher.publishTransactionRejectEvent(eventTrackingId, notificationId);
-                transactionStatus = TransactionStatus.REJECT;
-            }
+            eventPublisher.publishTransactionRejectEvent(eventTrackingId, notificationId);
+            transactionStatus = TransactionStatus.REJECT;
         }
 
         return new NotificationReplyResponse(
@@ -84,21 +81,5 @@ public class NotificationService {
                 approveCount,
                 rejectCount
         );
-
-    }
-
-    /**
-     * 구현 설명을 위한 메서드
-     */
-    private boolean isUpToApprove(int approveCnt) {
-        int threshold = 3;
-        return approveCnt >= 3;
-    }
-    /**
-     * 구현 설명을 위한 메서드
-     */
-    private boolean isUpToReject(int rejectCnt) {
-        int threshold = 3;
-        return rejectCnt >= 3;
     }
 }
