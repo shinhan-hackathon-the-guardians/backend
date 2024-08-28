@@ -47,4 +47,18 @@ public class PaymentLimit {
 		this.maxLimitAmount = maxLimitAmount;
 		this.amountUsed = amountUsed;
 	}
+
+	public LimitPeriod updatePeriod(LimitPeriod period) {
+		return this.period = period;
+	}
+
+	public Integer updateSingleTransactionLimit(Integer singleTransactionLimit) {
+		return this.singleTransactionLimit = singleTransactionLimit;
+	}
+
+	public Integer updateMaxLimitAmount(Integer maxLimitAmount) {
+		return this.maxLimitAmount = maxLimitAmount;
+	}
+
+
 }
