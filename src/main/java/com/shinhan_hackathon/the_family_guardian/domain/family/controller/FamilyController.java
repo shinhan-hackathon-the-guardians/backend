@@ -7,8 +7,6 @@ import com.shinhan_hackathon.the_family_guardian.domain.user.entity.Role;
 import com.shinhan_hackathon.the_family_guardian.global.auth.util.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -47,5 +45,17 @@ public class FamilyController {
 
         AddFamilyMemberResponse addFamilyMemberResponse = familyService.registerMember(family_id, addFamilyMemberRequest);
         return ResponseEntity.ok(addFamilyMemberResponse);
+    }
+
+    @PostMapping("/{family_id}/userRole")
+    public ResponseEntity updateFamilyUserRole(@PathVariable(value = "family_id") Long familyId, @RequestBody UpdateUserRoleRequest updateUserRoleRequest) {
+        authUtil.checkAuthority(Role.OWNER);
+        if (updateUserRoleRequest.newRole().equals(Role.NONE) ||
+        updateUserRoleRequest.newRole().equals(Role.OWNER)) {
+            throw new IllegalArgumentException("변경할 수 없는 가족 역할입니다.");
+        }
+
+        UpdateUserRoleResponse updateUserRoleResponse = familyService.manageFamilyUserRole(familyId, updateUserRoleRequest.targetUserId(), updateUserRoleRequest.newRole());
+        return ResponseEntity.ok(updateUserRoleResponse);
     }
 }
