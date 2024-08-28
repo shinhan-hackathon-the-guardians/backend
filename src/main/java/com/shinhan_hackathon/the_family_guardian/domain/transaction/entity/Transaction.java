@@ -47,8 +47,8 @@ public class Transaction {
     public int incrementApproveCount() {
         return ++this.approveCount;
     }
-    public void incrementRejectCount() {
-        this.rejectCount++;
+    public int incrementRejectCount() {
+        return ++this.rejectCount;
     }
 
     @Builder
