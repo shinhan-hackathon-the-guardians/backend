@@ -40,11 +40,15 @@ public class Transaction {
     private TransactionStatus status; // 요청의 최종 결과 -> 차단, 승인
 
     private int approveCount; // 승인된 요청 횟수
+    private int rejectCount; // 거절된 요청 횟수
 
     private String receiver;
 
     public void incrementApproveCount() {
         this.approveCount++;
+    }
+    public void incrementRejectCount() {
+        this.rejectCount++;
     }
 
     @Builder
@@ -55,6 +59,7 @@ public class Transaction {
         this.timestamp = timestamp;
         this.status = status;
         this.approveCount = approveCount;
+        this.rejectCount = rejectCount;
         this.receiver = receiver;
     }
 

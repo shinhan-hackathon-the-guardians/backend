@@ -82,7 +82,31 @@ public class TransactionService {
      * - 비동기식 : 현재 요청을 저장하고 승인 요청을 전송, 요청에 대한 응답이 올 때 요청을 다시 진행/차단 판단
      */
 
-    // TODO: 출금
+    /*
+     * Notification 로직 or EventListener?
+     * -----------------
+     *
+     * TODO: 승인 요청 결과 수신 :
+     * TODO: transactionService.updateTransactionApproveCount() // Approve & Reject Count 증가
+     * TODO: if(checkAlert) {
+     * TODO:     Switch(transactionType) {Withdrawal, Transfer, Payment} // Transaction Type 확인:
+     * TODO:     transactionService.executeWithdrawalTransaction() & // Transaction 실행 :
+     * TODO:                        executeTransferTransaction() &
+     * TODO:                        executePaymentTransaction()
+     * TODO:     // 승인 알림 전송 & Transaction 종료 판정?
+     * TODO: }
+     * TODO: else if() {
+     * TODO:     // 차단 알림 전송
+     * TODO: }
+     * TODO: else {
+     * TODO:     // 아무 일도 없음
+     * TODO: }
+     *
+     * --------------
+     * TODO: 시간제한 확인 -> 어떻게 구현? -> @Scheduler?
+     */
+
+    // TODO: .1 출금
     @Transactional
     public void updateWithdrawal(WithdrawalRequest withdrawalRequest) {
         log.info("TransactionService.updateWithdrawal() is called.");
@@ -104,24 +128,7 @@ public class TransactionService {
                 paymentLimitType = PaymentLimitType.SINGLE_TRANSACTION_LIMIT;
                 // TODO: 승인 요청 알림 -- 여기서 끊고, Notification에 역할을 넘김
 
-                /*
-                 * Notification 로직
-                 * -----------------
-                 *
-                 * TODO: 승인 요청 결과 확인 : return int approveCount
-                 * TODO: if(거절 카운트와 비교 == 제한) {차단 알림 전송}
-                 * TODO: else {
-                 * TODO: ApproveCount 변경 : transactionService.updateTransactionApproveCount() 호출
-                 * TODO: Transaction Type 확인: Switch(transactionType) {Withdrawal, Transfer, Payment}
-                 * TODO: Transaction 실행 : transactionService.executeWithdrawalTransaction() &
-                 *                                            executeTransferTransaction() &
-                 *                                            executePaymentTransaction()
-                 * TODO: 승인 알림 전송
-                 * TODO: }
-                 *
-                 * TODO: 시간제한 확인 -> 어떻게 구현?
-                 *
-                 */
+
             }
         }
         else { // 총 한도 초과
@@ -149,7 +156,7 @@ public class TransactionService {
 
     }
 
-    // TODO: 이체
+    // TODO: 2. 이체
     @Transactional
     public void updateTransfer(TransferRequest transferRequest) {
         log.info("TransactionService.updateTransfer() is called.");
@@ -198,17 +205,8 @@ public class TransactionService {
         }
     }
 
-    private void sendGuardianApprovalMessage(User user, Transaction transaction, PaymentLimitType paymentLimitType) {
-        TransactionInfo transactionInfo = new TransactionInfo(user, transaction, paymentLimitType);
-        NotificationBody notificationBody = notificationService.saveNotification(transactionInfo);
 
-        List<String> guardianDeviceToken = user.getFamily().getUsers().stream()
-                .filter(familyUser -> familyGuardianRole.contains(familyUser.getRole()))
-                .map(familyGuardian -> familyGuardian.getDeviceToken()).toList();
-        fcmSender.sendApprovalNotification(guardianDeviceToken, notificationBody);
-    }
-
-    // TODO: 결제 : 승인이 필요한 요청, 아닌 요청을 어떻게 구분?
+    // TODO: 3. 결제 : 승인이 필요한 요청, 아닌 요청을 어떻게 구분?
     @Transactional
     public void updatePayment(PaymentRequest paymentRequest) {
         log.info("TransactionService.updatePayment() is called.");
@@ -256,7 +254,18 @@ public class TransactionService {
         }
     }
 
-    // TODO: REFUSE에 의해 승인 요구치에 절대 도달하지 못하는 경우
+    // Guardian에게 승인 메시지 전송
+    private void sendGuardianApprovalMessage(User user, Transaction transaction, PaymentLimitType paymentLimitType) {
+        TransactionInfo transactionInfo = new TransactionInfo(user, transaction, paymentLimitType);
+        NotificationBody notificationBody = notificationService.saveNotification(transactionInfo);
+
+        List<String> guardianDeviceToken = user.getFamily().getUsers().stream()
+                .filter(familyUser -> familyGuardianRole.contains(familyUser.getRole()))
+                .map(User::getDeviceToken).toList();
+        fcmSender.sendApprovalNotification(guardianDeviceToken, notificationBody);
+    }
+
+    // TODO: REJECT에 의해 승인 요구치에 절대 도달하지 못하는 경우
     // TODO: 시간제한에 걸려 자동으로 차단되는 경우
 
 
@@ -272,6 +281,11 @@ public class TransactionService {
         if(transaction.getApproveCount() >= approvalRequirement) { // 승인 요구치에 도달하면
             // 출금
             accountService.updateAccountWithdrawal(user.getAccountNumber(), transaction.getTransactionBalance());
+            fcmSender.sendWithdrawalSuccessMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getTransactionBalance());
+            log.info("Success to execute withdrawal.");
+        }
+        else if ((user.getFamily().getTotalManagerCount() - transaction.getRejectCount()) < approvalRequirement) {
+            // TODO: 거부 알림
         }
     }
 
@@ -287,6 +301,11 @@ public class TransactionService {
         if(transaction.getApproveCount() >= approvalRequirement) { // 승인 요구치에 도달하면
             // 이체
             accountService.updateAccountTransfer(depositAccountNo, user.getAccountNumber(), transaction.getTransactionBalance());
+            fcmSender.sendTransferSuccessMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getReceiver() ,transaction.getTransactionBalance());
+            log.info("Success to execute transfer.");
+        }
+        else if ((user.getFamily().getTotalManagerCount() - transaction.getRejectCount()) < approvalRequirement) {
+            // TODO: 거부 알림
         }
     }
 
@@ -302,22 +321,33 @@ public class TransactionService {
         if(transaction.getApproveCount() >= approvalRequirement) { // 승인 요구치에 도달하면
             // 이체
             accountService.updateAccountWithdrawal(user.getAccountNumber(), transaction.getTransactionBalance());
+            fcmSender.sendPaymentSuccessMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getReceiver(), transaction.getTransactionBalance());
+            log.info("Success to execute payment.");
+        }
+        else if ((user.getFamily().getTotalManagerCount() - transaction.getRejectCount()) < approvalRequirement) {
+            // TODO: 거부 알림
         }
     }
 
-    // TODO: 현재 Transaction ApproveCount +1 증가
+    // TODO: 현재 Transaction Count 증가
     @Transactional
-    public int updateTransactionApproveCount(Long transactionId, ResponseStatus responseStatus) {
+    public Transaction updateTransactionApproveCount(Long transactionId, ResponseStatus responseStatus) {
         log.info("TransactionService.updateTransactionApproveCount() is called.");
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new RuntimeException("Transaction Not Found."));
 
         if(responseStatus.equals(ResponseStatus.APPROVE)) {
             transaction.incrementApproveCount();
-            transactionRepository.save(transaction);    // 불필요 코드
+        }
+        else if(responseStatus.equals(ResponseStatus.REJECT)) {
+            transaction.incrementRejectCount(); // TODO: 거절 Count 로직 추가 필요
+        }
+        else {
+            throw new RuntimeException("Failed to found response status.");
         }
 
-        return transaction.getApproveCount();
+        transactionRepository.save(transaction);
+        return transaction;
     }
 
     private Long getUserId() {
