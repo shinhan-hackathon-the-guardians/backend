@@ -18,6 +18,9 @@ import com.shinhan_hackathon.the_family_guardian.global.auth.dto.UserPrincipal;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import com.shinhan_hackathon.the_family_guardian.global.event.PaymentApproveEvent;
@@ -28,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -45,6 +49,7 @@ public class TransactionService {
     private final FcmSender fcmSender;
     private final NotificationService notificationService;
     private final List<Role> familyGuardianRole = List.of(Role.MANAGER, Role.OWNER);
+    private final int TIMEOUT = 10;
 
     public List<TransactionResponse> getTransactionHistory(Long userId, Pageable pageable) {
         log.info("TransactionService.getTransactionHistory() is called.");
@@ -270,7 +275,44 @@ public class TransactionService {
         fcmSender.sendApprovalNotification(guardianDeviceToken, notificationBody);
     }
 
-    // TODO: 시간제한에 걸려 자동으로 차단되는 경우
+    // TODO: 시간제한에 걸려 자동으로 요청 취소
+    @Scheduled(fixedRate = 60000)
+    private void updateTimeoutTransaction() {
+        log.info("TransactionService.updateTimeoutTransaction() is called.");
+        List<Transaction> transactionList = transactionRepository.findAllByStatus(TransactionStatus.PENDING);
+
+        LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
+        transactionList.stream()
+        .filter(transaction -> {
+           LocalDateTime transactionTime = LocalDateTime.ofInstant(transaction.getTimestamp().toInstant(), ZoneId.systemDefault());
+            Long minuteElapsed = ChronoUnit.MINUTES.between(transactionTime, now);
+            return minuteElapsed > TIMEOUT;
+        })
+        .forEach(transaction -> {
+            transaction.updateTransactionStatus(TransactionStatus.REJECT);
+            User user = transaction.getUser();
+            switch (transaction.getTransactionType()) {
+                case WITHDRAWAL -> fcmSender.sendWithdrawalFailMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getTransactionBalance());
+                case TRANSFER -> fcmSender.sendTransferFailMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getReceiver(), transaction.getTransactionBalance());
+                case PAYMENT ->  fcmSender.sendPaymentFailMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getReceiver(), transaction.getTransactionBalance());
+            }
+        });
+
+        /*
+         * TODO: DB에서 Status가 PENDING인 Transaction들 가져오기
+         * TODO: Timestamp를 확인
+         * TODO: User 가져오기
+         * TODO: PaymentLimit를 가져오기
+         * TODO: if(transaction.timestamp + 5분 or 10분 > now()) { // 제한시간 초과
+         * TODO:    transaction.status = TransactionStatus.REJECT // 상태를 거절로 변경
+         * TODO:    switch(transaction) {
+         * TODO:        case WITHDRAWAL -> fcmSender.sendWithdrawalFailMessage();
+         * TODO:        case TRANSFER -> fcmSender.sendTransferFailMessage();
+         * TODO:        case PAYMENT -> fcmSender.sendPaymentFailMessage();
+         * TODO:    }
+         * TODO: }
+         */
+    }
 
 
     // TODO: 승인 요구치에 따른 출금 진행

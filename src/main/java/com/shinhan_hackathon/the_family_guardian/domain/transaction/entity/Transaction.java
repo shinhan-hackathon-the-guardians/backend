@@ -56,7 +56,7 @@ public class Transaction {
     }
 
     @Builder
-    public Transaction(User user, TransactionType transactionType, Long transactionBalance, Timestamp timestamp, TransactionStatus status, int approveCount, String receiver) {
+    public Transaction(User user, TransactionType transactionType, Long transactionBalance, Timestamp timestamp, TransactionStatus status, int approveCount, int rejectCount, String receiver) {
         this.user = user;
         this.transactionType = transactionType;
         this.transactionBalance = transactionBalance;
