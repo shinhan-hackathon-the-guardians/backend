@@ -120,6 +120,7 @@ public class FcmSender implements MessageSender {
     // FCM 전송 메서드
     private void sendTransactionResultMessage(String deviceToken, TransactionType txType, String senderAccount, String receiver, long transactionBalance, String txName, boolean isSuccess) {
         NotificationBody notificationBody = new NotificationBody(
+                0L,
                 txType,
                 senderAccount,
                 receiver,
