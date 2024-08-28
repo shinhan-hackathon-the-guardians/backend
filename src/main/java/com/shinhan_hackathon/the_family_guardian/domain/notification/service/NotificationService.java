@@ -23,7 +23,6 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final EventPublisher eventPublisher;
-    private final TransactionService transactionService;
 
     @Transactional
     public NotificationBody saveNotification(TransactionInfo transactionInfo) {
@@ -64,13 +63,12 @@ public class NotificationService {
         int approveCount = notification.getTransaction().getApproveCount();
         int rejectCount = notification.getTransaction().getRejectCount();
 
-        ResponseStatus responseStatus = isApprove ? ResponseStatus.APPROVE : ResponseStatus.REJECT;
-        transactionService.updateTransactionApproveCount(notification.getTransaction().getId(), responseStatus);
-
         if (isApprove) {
+            notification.getTransaction().incrementApproveCount();
             eventPublisher.publishTransactionApproveEvent(eventTrackingId, notificationId);
             transactionStatus = TransactionStatus.APPROVE;
         } else {
+            notification.getTransaction().incrementRejectCount();
             eventPublisher.publishTransactionRejectEvent(eventTrackingId, notificationId);
             transactionStatus = TransactionStatus.REJECT;
         }
