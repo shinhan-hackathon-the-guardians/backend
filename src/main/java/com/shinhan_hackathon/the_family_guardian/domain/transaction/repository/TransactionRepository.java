@@ -9,5 +9,5 @@ import com.shinhan_hackathon.the_family_guardian.domain.transaction.entity.Trans
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.entity.TransactionStatus;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
-	Optional<List<Transaction>> findByStatus(TransactionStatus pending);
+	List<Transaction> findAllByStatus(TransactionStatus pending);
 }

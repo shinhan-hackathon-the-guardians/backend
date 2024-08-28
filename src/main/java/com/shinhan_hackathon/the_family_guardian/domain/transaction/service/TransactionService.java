@@ -279,8 +279,7 @@ public class TransactionService {
     @Scheduled(fixedRate = 60000)
     private void updateTimeoutTransaction() {
         log.info("TransactionService.updateTimeoutTransaction() is called.");
-        List<Transaction> transactionList = transactionRepository.findByStatus(TransactionStatus.PENDING)
-            .orElseThrow(() -> new RuntimeException("Failed to find transaction list."));
+        List<Transaction> transactionList = transactionRepository.findAllByStatus(TransactionStatus.PENDING);
 
         LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
         transactionList.stream()
