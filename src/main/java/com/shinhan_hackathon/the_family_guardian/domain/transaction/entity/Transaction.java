@@ -51,6 +51,10 @@ public class Transaction {
         return ++this.rejectCount;
     }
 
+    public TransactionStatus updateTransactionStatus(TransactionStatus transactionStatus) {
+        return this.status = transactionStatus;
+    }
+
     @Builder
     public Transaction(User user, TransactionType transactionType, Long transactionBalance, Timestamp timestamp, TransactionStatus status, int approveCount, String receiver) {
         this.user = user;
