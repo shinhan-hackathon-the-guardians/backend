@@ -30,14 +30,23 @@ public class Family {
     private List<User> users;
 
     @Column(nullable = false)
-    private int totalManagerCount; // TODO: Default로 Owner가 있으니까 1? default 0에서 그룹 생성할 때 owner 등록하면서 +1?
+    private Integer totalManagerCount; // TODO: Default로 Owner가 있으니까 1? default 0에서 그룹 생성할 때 owner 등록하면서 +1?
 
     @Builder
-    public Family(String name, String description, int approvalRequirement, List<User> users) {
+    public Family(String name, String description, int approvalRequirement, List<User> users, Integer totalManagerCount) {
         this.name = name;
         this.description = description;
         this.approvalRequirement = approvalRequirement;
         this.users = users;
+        this.totalManagerCount = totalManagerCount;
+    }
+
+    public int increaseTotalManagerCount() {
+        return ++this.totalManagerCount;
+    }
+
+    public int decreaseTotalManagerCount() {
+        return --this.totalManagerCount;
     }
 
     public String updateName(String name) {

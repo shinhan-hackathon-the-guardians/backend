@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
@@ -45,6 +46,7 @@ public class FamilyService {
                 .description(createFamilyRequest.description())
                 .approvalRequirement(createFamilyRequest.approvalRequirement())
                 .users(new ArrayList<>(List.of(user)))
+                .totalManagerCount(1)
                 .build();
 
         Family savedFamily = familyRepository.save(family);
@@ -148,5 +150,42 @@ public class FamilyService {
                 user.getPhone(),
                 approvalId
         );
+    }
+
+    @Transactional
+    public UpdateUserRoleResponse manageFamilyUserRole(Long familyId, Long targetUserId, Role newRole) {
+        Long ownerId = Long.valueOf(authUtil.getUserPrincipal().getUsername());
+        User owner = userService.getUser(ownerId);
+        Family ownerFamily = owner.getFamily();
+        if (!ownerFamily.getId().equals(familyId)) {
+            throw new RuntimeException("소속된 가족이 아닙니다.");
+        }
+
+        User target = userService.getUser(targetUserId);
+        if (target.getFamily() == null ||
+                !target.getFamily().getId().equals(familyId)) {
+            throw new RuntimeException("같은 가족이 아닌 유저입니다.");
+        }
+
+        Role oldRole = target.getRole();
+        if (oldRole.equals(newRole)) {
+            throw new RuntimeException("기존 역할과 동일합니다.");
+        }
+
+        target.updateRole(newRole);
+
+        Family familyForUpdate = getFamilyForUpdate(familyId);
+        if (newRole.equals(Role.MEMBER)) {
+            familyForUpdate.decreaseTotalManagerCount();
+        } else {
+            familyForUpdate.increaseTotalManagerCount();
+        }
+
+        return new UpdateUserRoleResponse(targetUserId, newRole);
+    }
+
+    public Family getFamilyForUpdate(Long id) {
+        return familyRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new RuntimeException("해당 가족이 없습니다."));
     }
 }
