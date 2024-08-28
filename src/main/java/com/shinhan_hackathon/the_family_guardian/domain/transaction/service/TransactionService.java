@@ -270,7 +270,6 @@ public class TransactionService {
         fcmSender.sendApprovalNotification(guardianDeviceToken, notificationBody);
     }
 
-    // TODO: REJECT에 의해 승인 요구치에 절대 도달하지 못하는 경우
     // TODO: 시간제한에 걸려 자동으로 차단되는 경우
 
 
@@ -288,10 +287,12 @@ public class TransactionService {
             // 출금
             accountService.updateAccountWithdrawal(user.getAccountNumber(), transaction.getTransactionBalance());
             fcmSender.sendWithdrawalSuccessMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getTransactionBalance());
-            log.info("Success to execute withdrawal.");
+            log.info("Success to execute withdrawal. [Transaction-ID: {}]", transaction.getId());
         }
         else if ((user.getFamily().getTotalManagerCount() - transaction.getRejectCount()) < approvalRequirement) {
-            // TODO: 거부 알림
+            //  거부 알림
+            fcmSender.sendWithdrawalFailMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getTransactionBalance());
+            log.info("Rejected to execute withdrawal. [Transaction-ID: {}]", transaction.getId());
         }
     }
 
@@ -309,10 +310,12 @@ public class TransactionService {
             // 이체
             accountService.updateAccountTransfer(transaction.getReceiver(), user.getAccountNumber(), transaction.getTransactionBalance());
             fcmSender.sendTransferSuccessMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getReceiver() ,transaction.getTransactionBalance());
-            log.info("Success to execute transfer.");
+            log.info("Success to execute transfer. [Transaction-ID: {}]", transaction.getId());
         }
         else if ((user.getFamily().getTotalManagerCount() - transaction.getRejectCount()) < approvalRequirement) {
-            // TODO: 거부 알림
+            //  거부 알림
+            fcmSender.sendTransferFailMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getReceiver(), transaction.getTransactionBalance());
+            log.info("Rejected to execute transfer. [Transaction-ID: {}]", transaction.getId());
         }
     }
 
@@ -330,10 +333,12 @@ public class TransactionService {
             // 이체
             accountService.updateAccountWithdrawal(user.getAccountNumber(), transaction.getTransactionBalance());
             fcmSender.sendPaymentSuccessMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getReceiver(), transaction.getTransactionBalance());
-            log.info("Success to execute payment.");
+            log.info("Success to execute payment. [Transaction-ID: {}]", transaction.getId());
         }
         else if ((user.getFamily().getTotalManagerCount() - transaction.getRejectCount()) < approvalRequirement) {
-            // TODO: 거부 알림
+            //  거부 알림
+            fcmSender.sendPaymentFailMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getReceiver(), transaction.getTransactionBalance());
+            log.info("Rejected to execute payment. [Transaction-ID: {}]", transaction.getId());
         }
     }
 
@@ -348,14 +353,13 @@ public class TransactionService {
             transaction.incrementApproveCount();
         }
         else if(responseStatus.equals(ResponseStatus.REJECT)) {
-            transaction.incrementRejectCount(); // TODO: 거절 Count 로직 추가 필요
+            transaction.incrementRejectCount();
         }
         else {
             throw new RuntimeException("Failed to found response status.");
         }
 
-        transactionRepository.save(transaction);
-        return transaction;
+        return transactionRepository.save(transaction);
     }
 
     private Long getUserId() {
