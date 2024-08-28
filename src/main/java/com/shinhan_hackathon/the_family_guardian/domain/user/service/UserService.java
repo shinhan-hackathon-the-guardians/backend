@@ -6,6 +6,9 @@ import com.shinhan_hackathon.the_family_guardian.bank.dto.response.OpenAccountAu
 import com.shinhan_hackathon.the_family_guardian.bank.service.AccountAuthService;
 import com.shinhan_hackathon.the_family_guardian.bank.service.AccountService;
 import com.shinhan_hackathon.the_family_guardian.bank.util.BankUtil;
+import com.shinhan_hackathon.the_family_guardian.domain.payment.entity.LimitPeriod;
+import com.shinhan_hackathon.the_family_guardian.domain.payment.entity.PaymentLimit;
+import com.shinhan_hackathon.the_family_guardian.domain.payment.repository.PaymentLimitRepository;
 import com.shinhan_hackathon.the_family_guardian.domain.user.dto.AccountAuthResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.user.dto.SignupRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.user.dto.UpdateDeviceTokenRequest;
@@ -14,6 +17,9 @@ import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import com.shinhan_hackathon.the_family_guardian.domain.user.repository.UserRepository;
 import com.shinhan_hackathon.the_family_guardian.global.auth.util.AuthUtil;
 import com.shinhan_hackathon.the_family_guardian.global.redis.service.RedisService;
+
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -26,12 +32,15 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserService {
+    public static final int SINGLE_TRANSACTION_LIMIT_DEFAULT = 1_000_000;
+    public static final int MAX_LIMIT_AMOUNT_DEFAULT = 20_000_000;
 
     private final UserRepository userRepository;
     private final AccountAuthService accountAuthService;
     private final AccountService accountService;
     private final RedisService redisService;
     private final AuthUtil authUtil;
+    private final PaymentLimitRepository paymentLimitRepository;
 
     @Transactional
     public void createUser(SignupRequest signupRequest) {
@@ -39,8 +48,18 @@ public class UserService {
         validateSignupRequest(signupRequest);
         validateCsrfToken(signupRequest.accountNumber(), signupRequest.csrfToken());
 
-        userRepository.save(signupRequest.toUserEntity());
+        User user = userRepository.save(signupRequest.toUserEntity());
         redisService.deleteValues(signupRequest.accountNumber());
+
+        PaymentLimit paymentLimit = new PaymentLimit(
+                user,
+                Timestamp.from(Instant.now()),
+                LimitPeriod.DAY30,
+                SINGLE_TRANSACTION_LIMIT_DEFAULT,
+                MAX_LIMIT_AMOUNT_DEFAULT,
+                0
+        );
+        paymentLimitRepository.save(paymentLimit);
     }
 
     public AccountAuthResponse openAccountAuth(String accountNo) {
