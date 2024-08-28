@@ -1,5 +1,7 @@
 package com.shinhan_hackathon.the_family_guardian.domain.payment.service;
 
+import com.shinhan_hackathon.the_family_guardian.domain.payment.dto.UpdateLimitRequest;
+import com.shinhan_hackathon.the_family_guardian.domain.payment.dto.UpdateLimitResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.payment.entity.PaymentLimit;
 import com.shinhan_hackathon.the_family_guardian.domain.payment.repository.PaymentLimitRepository;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
@@ -41,5 +43,23 @@ public class PaymentLimitService {
 
         // 단건 한도를 초과하면 False
         return transactionBalance >= singleTransactionLimit;
+    }
+
+    @Transactional
+    public UpdateLimitResponse manageMemberLimit(UpdateLimitRequest updateLimitRequest) {
+        User user = userRepository.getReferenceById(updateLimitRequest.targetUserId());
+        PaymentLimit paymentLimit = paymentLimitRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("결제 제한이 없습니다."));
+
+        paymentLimit.updatePeriod(updateLimitRequest.period());
+        paymentLimit.updateMaxLimitAmount(updateLimitRequest.maxLimitAmount());
+        paymentLimit.updateSingleTransactionLimit(updateLimitRequest.singleTransactionLimit());
+
+        return new UpdateLimitResponse(
+                user.getId(),
+                paymentLimit.getPeriod(),
+                paymentLimit.getSingleTransactionLimit(),
+                paymentLimit.getMaxLimitAmount()
+        );
     }
 }
