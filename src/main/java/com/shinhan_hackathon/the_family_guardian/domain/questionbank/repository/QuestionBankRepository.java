@@ -9,5 +9,8 @@ import java.util.List;
 public interface QuestionBankRepository extends JpaRepository<QuestionBank, Long> {
 
     @Query(value = "select * from question_bank order by rand() limit 20", nativeQuery = true)
-    List<QuestionBank> findQuestion();
+    List<QuestionBank> findQuestionTest();
+
+    @Query(value = "select * from question_bank order by rand()", nativeQuery = true)
+    List<QuestionBank> findQuestionPractice();
 }

@@ -32,6 +32,7 @@ public class User {
 	private String name;
 
 	@Column(length = 10)
+	@Enumerated(EnumType.STRING)
 	private Gender gender;
 
 	@Temporal(TemporalType.DATE)

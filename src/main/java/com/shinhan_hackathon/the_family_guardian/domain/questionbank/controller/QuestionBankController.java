@@ -17,8 +17,8 @@ public class QuestionBankController {
     private final UserRepository userRepository;
 
     @GetMapping
-    public ResponseEntity<QuestionListResponse> getQuestion() {
-        QuestionListResponse questions = new QuestionListResponse(questionBankService.getQuestion());
+    public ResponseEntity<QuestionListResponse> getQuestionTest() {
+        QuestionListResponse questions = new QuestionListResponse(questionBankService.getQuestionTest());
         return ResponseEntity.ok().body(questions);
     }
 
@@ -26,6 +26,12 @@ public class QuestionBankController {
     public ResponseEntity<String> questionComplete(@RequestBody QuestionCompleteRequest questionCompleteRequest) {
         questionBankService.updateLevel(questionCompleteRequest.pass());
         return ResponseEntity.ok("완료되었습니다");
+    }
+
+    @GetMapping("/practice")
+    public ResponseEntity<QuestionListResponse> getQuestionPractice() {
+        QuestionListResponse questions = new QuestionListResponse(questionBankService.getQuestionPractice());
+        return ResponseEntity.ok().body(questions);
     }
 
 }

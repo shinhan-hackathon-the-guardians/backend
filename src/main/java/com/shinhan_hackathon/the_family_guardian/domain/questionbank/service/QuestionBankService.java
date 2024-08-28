@@ -25,8 +25,22 @@ public class QuestionBankService {
     private final QuestionBankRepository questionBankRepository;
     private final UserRepository userRepository;
 
-    public List<QuestionResponse> getQuestion() {
-        List<QuestionBank> questionBanks = questionBankRepository.findQuestion();
+    public List<QuestionResponse> getQuestionTest() {
+        List<QuestionBank> questionBanks = questionBankRepository.findQuestionTest();
+        List<QuestionResponse> responses = new ArrayList<>();
+        for(QuestionBank questionBank : questionBanks){
+            responses.add(new QuestionResponse(
+                    questionBank.getId(),
+                    questionBank.getAnswer(),
+                    questionBank.getQuestion(),
+                    questionBank.getExplanation())
+            );
+        }
+        return responses;
+    }
+
+    public List<QuestionResponse> getQuestionPractice() {
+        List<QuestionBank> questionBanks = questionBankRepository.findQuestionPractice();
         List<QuestionResponse> responses = new ArrayList<>();
         for(QuestionBank questionBank : questionBanks){
             responses.add(new QuestionResponse(
@@ -53,4 +67,6 @@ public class QuestionBankService {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         return userPrincipal.user().getId();
     }
+
+
 }
