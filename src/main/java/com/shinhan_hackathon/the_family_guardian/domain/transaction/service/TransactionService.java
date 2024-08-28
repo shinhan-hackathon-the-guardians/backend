@@ -19,9 +19,14 @@ import com.shinhan_hackathon.the_family_guardian.global.auth.dto.UserPrincipal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
+
+import com.shinhan_hackathon.the_family_guardian.global.event.PaymentApproveEvent;
+import com.shinhan_hackathon.the_family_guardian.global.event.TransferApproveEvent;
+import com.shinhan_hackathon.the_family_guardian.global.event.WithdrawalApproveEvent;
 import com.shinhan_hackathon.the_family_guardian.global.fcm.FcmSender;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -265,15 +270,16 @@ public class TransactionService {
         fcmSender.sendApprovalNotification(guardianDeviceToken, notificationBody);
     }
 
-    // TODO: REJECT에 의해 승인 요구치에 절대 도달하지 못하는 경우
     // TODO: 시간제한에 걸려 자동으로 차단되는 경우
 
 
     // TODO: 승인 요구치에 따른 출금 진행
-    public void executeWithdrawalTransaction(Long transactionId) {
+    @Transactional
+    @EventListener(WithdrawalApproveEvent.class)
+    public void executeWithdrawalTransaction(WithdrawalApproveEvent event) {
         log.info("TransactionService.executeWithdrawalTransaction() is called.");
         // Transaction 정보 조회
-        Transaction transaction = transactionRepository.findById(transactionId)
+        Transaction transaction = transactionRepository.findById(event.getTransactionId())
                 .orElseThrow(() -> new RuntimeException("Transaction Not Found."));
         User user = transaction.getUser();
         Integer approvalRequirement = user.getFamily().getApprovalRequirement(); // 승인 요구치
@@ -281,39 +287,51 @@ public class TransactionService {
         if(transaction.getApproveCount() >= approvalRequirement) { // 승인 요구치에 도달하면
             // 출금
             accountService.updateAccountWithdrawal(user.getAccountNumber(), transaction.getTransactionBalance());
+            transaction.updateTransactionStatus(TransactionStatus.APPROVE);
             fcmSender.sendWithdrawalSuccessMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getTransactionBalance());
-            log.info("Success to execute withdrawal.");
+            log.info("Success to execute withdrawal. [Transaction-ID: {}]", transaction.getId());
         }
         else if ((user.getFamily().getTotalManagerCount() - transaction.getRejectCount()) < approvalRequirement) {
-            // TODO: 거부 알림
+            //  거부 알림
+            transaction.updateTransactionStatus(TransactionStatus.REJECT);
+            fcmSender.sendWithdrawalFailMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getTransactionBalance());
+            log.info("Rejected to execute withdrawal. [Transaction-ID: {}]", transaction.getId());
         }
     }
 
-    // TODO: 승인 요구치에 따른 이체 진행 - DepositAccountNo를 받아야함, 수정 있을 수 있음
-    public void executeTransferTransaction(Long transactionId, String depositAccountNo) {
+    // TODO: 승인 요구치에 따른 이체 진행
+    @Transactional
+    @EventListener(TransferApproveEvent.class)
+    public void executeTransferTransaction(TransferApproveEvent event) {
         log.info("TransactionService.executeTransferTransaction() is called.");
         // Transaction 정보 조회
-        Transaction transaction = transactionRepository.findById(transactionId)
+        Transaction transaction = transactionRepository.findById(event.getTransactionId())
                 .orElseThrow(() -> new RuntimeException("Transaction Not Found."));
         User user = transaction.getUser();
         Integer approvalRequirement = user.getFamily().getApprovalRequirement(); // 승인 요구치
 
         if(transaction.getApproveCount() >= approvalRequirement) { // 승인 요구치에 도달하면
             // 이체
-            accountService.updateAccountTransfer(depositAccountNo, user.getAccountNumber(), transaction.getTransactionBalance());
+            accountService.updateAccountTransfer(transaction.getReceiver(), user.getAccountNumber(), transaction.getTransactionBalance());
+            transaction.updateTransactionStatus(TransactionStatus.APPROVE);
             fcmSender.sendTransferSuccessMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getReceiver() ,transaction.getTransactionBalance());
-            log.info("Success to execute transfer.");
+            log.info("Success to execute transfer. [Transaction-ID: {}]", transaction.getId());
         }
         else if ((user.getFamily().getTotalManagerCount() - transaction.getRejectCount()) < approvalRequirement) {
-            // TODO: 거부 알림
+            //  거부 알림
+            transaction.updateTransactionStatus(TransactionStatus.REJECT);
+            fcmSender.sendTransferFailMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getReceiver(), transaction.getTransactionBalance());
+            log.info("Rejected to execute transfer. [Transaction-ID: {}]", transaction.getId());
         }
     }
 
     // TODO: 승인 요구치에 따른 결제 진행
-    public void executePaymentTransaction(Long transactionId) {
+    @Transactional
+    @EventListener(PaymentApproveEvent.class)
+    public void executePaymentTransaction(PaymentApproveEvent event) {
         log.info("TransactionService.executePaymentTransaction() is called.");
         // Transaction 정보 조회
-        Transaction transaction = transactionRepository.findById(transactionId)
+        Transaction transaction = transactionRepository.findById(event.getTransactionId())
                 .orElseThrow(() -> new RuntimeException("Transaction Not Found."));
         User user = transaction.getUser();
         Integer approvalRequirement = user.getFamily().getApprovalRequirement(); // 승인 요구치
@@ -321,11 +339,15 @@ public class TransactionService {
         if(transaction.getApproveCount() >= approvalRequirement) { // 승인 요구치에 도달하면
             // 이체
             accountService.updateAccountWithdrawal(user.getAccountNumber(), transaction.getTransactionBalance());
+            transaction.updateTransactionStatus(TransactionStatus.APPROVE);
             fcmSender.sendPaymentSuccessMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getReceiver(), transaction.getTransactionBalance());
-            log.info("Success to execute payment.");
+            log.info("Success to execute payment. [Transaction-ID: {}]", transaction.getId());
         }
         else if ((user.getFamily().getTotalManagerCount() - transaction.getRejectCount()) < approvalRequirement) {
-            // TODO: 거부 알림
+            //  거부 알림
+            transaction.updateTransactionStatus(TransactionStatus.REJECT);
+            fcmSender.sendPaymentFailMessage(user.getDeviceToken(), user.getAccountNumber(), transaction.getReceiver(), transaction.getTransactionBalance());
+            log.info("Rejected to execute payment. [Transaction-ID: {}]", transaction.getId());
         }
     }
 
@@ -340,14 +362,13 @@ public class TransactionService {
             transaction.incrementApproveCount();
         }
         else if(responseStatus.equals(ResponseStatus.REJECT)) {
-            transaction.incrementRejectCount(); // TODO: 거절 Count 로직 추가 필요
+            transaction.incrementRejectCount();
         }
         else {
             throw new RuntimeException("Failed to found response status.");
         }
 
-        transactionRepository.save(transaction);
-        return transaction;
+        return transactionRepository.save(transaction);
     }
 
     private Long getUserId() {
