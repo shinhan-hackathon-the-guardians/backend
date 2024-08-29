@@ -2,19 +2,20 @@ package com.shinhan_hackathon.the_family_guardian.domain.notification.controller
 
 import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.NotificationReplyRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.NotificationReplyResponse;
+import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.PendingNotificationResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.service.NotificationService;
+import com.shinhan_hackathon.the_family_guardian.domain.user.entity.Role;
+import com.shinhan_hackathon.the_family_guardian.global.auth.util.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/notification")
 public class NotificationController {
     private final NotificationService notificationService;
+    private final AuthUtil authUtil;
 
     @PostMapping("/reply")
     public ResponseEntity<NotificationReplyResponse> postGuardianReply(@RequestBody NotificationReplyRequest notificationReplyRequest) {
@@ -24,5 +25,12 @@ public class NotificationController {
         );
 
         return ResponseEntity.ok(notificationReplyResponse);
+    }
+
+    @GetMapping("/group/{group_id}")
+    public ResponseEntity<PendingNotificationResponse> getPendingNotification(@PathVariable Long group_id) {
+        authUtil.checkAuthority(Role.MANAGER, Role.OWNER);
+        PendingNotificationResponse pendingNotification = notificationService.getPendingNotification(group_id);
+        return ResponseEntity.ok(pendingNotification);
     }
 }

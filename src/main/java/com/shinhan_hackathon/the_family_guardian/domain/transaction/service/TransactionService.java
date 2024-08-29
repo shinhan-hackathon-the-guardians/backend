@@ -27,6 +27,7 @@ import com.shinhan_hackathon.the_family_guardian.global.event.PaymentApproveEven
 import com.shinhan_hackathon.the_family_guardian.global.event.TransferApproveEvent;
 import com.shinhan_hackathon.the_family_guardian.global.event.WithdrawalApproveEvent;
 import com.shinhan_hackathon.the_family_guardian.global.fcm.FcmSender;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -418,5 +419,10 @@ public class TransactionService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         return userPrincipal.user().getId();
+    }
+
+    public Transaction findById(Long id) {
+        return transactionRepository.findById(id)
+                .orElseThrow(EntityNotFoundException::new);
     }
 }
