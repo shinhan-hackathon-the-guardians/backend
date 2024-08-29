@@ -1,5 +1,7 @@
 package com.shinhan_hackathon.the_family_guardian.domain.family.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shinhan_hackathon.the_family_guardian.domain.approval.service.ApprovalService;
 import com.shinhan_hackathon.the_family_guardian.domain.family.dto.*;
 import com.shinhan_hackathon.the_family_guardian.domain.family.entity.Family;
@@ -10,12 +12,14 @@ import com.shinhan_hackathon.the_family_guardian.domain.user.repository.UserRepo
 import com.shinhan_hackathon.the_family_guardian.domain.user.service.UserService;
 import com.shinhan_hackathon.the_family_guardian.global.auth.dto.UserPrincipal;
 import com.shinhan_hackathon.the_family_guardian.global.auth.util.AuthUtil;
+import com.shinhan_hackathon.the_family_guardian.global.fcm.FcmSender;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +34,8 @@ public class FamilyService {
     private final AuthUtil authUtil;
     private final ApprovalService approvalService;
     private final UserService userService;
+    private final FcmSender fcmSender;
+    private final ObjectMapper jacksonObjectMapper;
 
     @Transactional
     public CreateFamilyResponse registerFamily(CreateFamilyRequest createFamilyRequest) {
@@ -81,7 +87,7 @@ public class FamilyService {
                 .map(user -> new FamilyInfoResponse.FamilyUser(
                         user.getId(),
                         user.getName(),
-                        user.getPhone(),
+                        user.getBirthDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
                         user.getLevel(),
                         user.getRole(),
                         user.getRelationship())
@@ -131,7 +137,7 @@ public class FamilyService {
     }
 
     @Transactional
-    public AddFamilyMemberResponse registerMember(Long familyId, AddFamilyMemberRequest addFamilyMemberRequest) {
+    public AddFamilyMemberResponse registerMember(Long familyId, AddFamilyMemberRequest addFamilyMemberRequest) throws JsonProcessingException {
         Family family = authUtil.getUserPrincipal().getFamily();
         if (!family.getId().equals(familyId)) {
             throw new AccessDeniedException("소속된 가족이 아닙니다.");
@@ -142,7 +148,16 @@ public class FamilyService {
             throw new RuntimeException("소속된 가족이 있는 사용자입니다.");
         }
 
-        // TODO: Send Notification to invited user
+        Long ownerId = Long.valueOf(authUtil.getUserPrincipal().getUsername());
+        User owner = userRepository.findById(ownerId).orElseThrow(() -> new RuntimeException("유저가 없습니다."));
+
+        FamilyInviteNotification familyInviteNotification = new FamilyInviteNotification(user.getId(), user.getName(), family.getDescription(), ownerId, owner.getName());
+        String notificationBody = jacksonObjectMapper.writeValueAsString(familyInviteNotification);
+        fcmSender.sendMessage(
+                user.getDeviceToken(),
+                "가족 초대 알림",
+                notificationBody
+        );
 
         Long approvalId = approvalService.createApproval(family, user);
         return new AddFamilyMemberResponse(

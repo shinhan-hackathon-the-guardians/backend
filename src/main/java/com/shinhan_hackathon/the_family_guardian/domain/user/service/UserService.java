@@ -6,6 +6,12 @@ import com.shinhan_hackathon.the_family_guardian.bank.dto.response.OpenAccountAu
 import com.shinhan_hackathon.the_family_guardian.bank.service.AccountAuthService;
 import com.shinhan_hackathon.the_family_guardian.bank.service.AccountService;
 import com.shinhan_hackathon.the_family_guardian.bank.util.BankUtil;
+import com.shinhan_hackathon.the_family_guardian.domain.approval.entity.AcceptStatus;
+import com.shinhan_hackathon.the_family_guardian.domain.approval.entity.Approval;
+import com.shinhan_hackathon.the_family_guardian.domain.approval.repository.ApprovalRepository;
+import com.shinhan_hackathon.the_family_guardian.domain.approval.service.ApprovalService;
+import com.shinhan_hackathon.the_family_guardian.domain.family.dto.FamilyInviteNotification;
+import com.shinhan_hackathon.the_family_guardian.domain.family.entity.Family;
 import com.shinhan_hackathon.the_family_guardian.domain.payment.entity.LimitPeriod;
 import com.shinhan_hackathon.the_family_guardian.domain.payment.entity.PaymentLimit;
 import com.shinhan_hackathon.the_family_guardian.domain.payment.repository.PaymentLimitRepository;
@@ -14,6 +20,7 @@ import com.shinhan_hackathon.the_family_guardian.domain.user.dto.AccountAuthResp
 import com.shinhan_hackathon.the_family_guardian.domain.user.dto.SignupRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.user.dto.UpdateDeviceTokenResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.user.dto.UserInfoResponse;
+import com.shinhan_hackathon.the_family_guardian.domain.user.entity.Role;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import com.shinhan_hackathon.the_family_guardian.domain.user.repository.UserRepository;
 import com.shinhan_hackathon.the_family_guardian.global.auth.dto.UserPrincipal;
@@ -25,6 +32,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +57,8 @@ public class UserService {
     private final RedisService redisService;
     private final AuthUtil authUtil;
     private final PaymentLimitRepository paymentLimitRepository;
+    private final ApprovalService approvalService;
+    private final ApprovalRepository approvalRepository;
 
     @Transactional
     public void createUser(SignupRequest signupRequest) {
@@ -220,6 +230,27 @@ public class UserService {
                 .familyId(user.getFamily().getId())
                 .familyName(user.getFamily().getName())
                 .build();
+    }
+
+    public List<FamilyInviteNotification> findFamilyInviteRequest() {
+//        Long userId = Long.valueOf(authUtil.getUserPrincipal().getUsername());
+
+        User user = userRepository.getReferenceById(1L);
+        List<Approval> approvalList = approvalRepository.findAllByUser(user);
+
+        return approvalList.stream()
+                .filter(approval -> approval.getAccepted().equals(AcceptStatus.PROGRESS))
+                .map(approval -> {
+            Family family = approval.getFamily();
+            User familyOwner = userRepository.findByFamilyAndRole(family, Role.OWNER).orElseThrow(() -> new RuntimeException("가족이 없습니다."));
+            return new FamilyInviteNotification(
+                    family.getId(),
+                    family.getName(),
+                    family.getDescription(),
+                    familyOwner.getId(),
+                    familyOwner.getName()
+            );
+        }).toList();
     }
 
     // TODO: PaymentLimitList 조회

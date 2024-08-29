@@ -1,5 +1,7 @@
 package com.shinhan_hackathon.the_family_guardian.global.fcm;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.core.ApiFuture;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.messaging.FirebaseMessaging;
@@ -20,6 +22,7 @@ import java.util.concurrent.Executor;
 @RequiredArgsConstructor
 @Component
 public class FcmSender implements MessageSender {
+    private final ObjectMapper jacksonObjectMapper;
     @Value("${firebase.app-name}")
     private String firebaseAppName;
 
@@ -55,10 +58,10 @@ public class FcmSender implements MessageSender {
         };
     }
 
-    public void sendApprovalNotification(List<String> guardianDeviceTokenList, NotificationBody body) {
-        guardianDeviceTokenList.forEach(deviceToken ->
-                sendMessage(deviceToken, "승인 요청", body.toString())
-        );
+    public void sendApprovalNotification(List<String> guardianDeviceTokenList, String body) {
+        for (String deviceToken : guardianDeviceTokenList) {
+            sendMessage(deviceToken, "승인 요청", body);
+        }
     }
 
     // public: FCM 접근 메서드

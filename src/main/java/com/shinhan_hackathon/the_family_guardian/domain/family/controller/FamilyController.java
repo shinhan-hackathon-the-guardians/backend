@@ -1,5 +1,6 @@
 package com.shinhan_hackathon.the_family_guardian.domain.family.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.shinhan_hackathon.the_family_guardian.domain.family.dto.*;
 import com.shinhan_hackathon.the_family_guardian.domain.family.service.FamilyService;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.Level;
@@ -40,7 +41,7 @@ public class FamilyController {
     }
 
     @PostMapping("/{family_id}/invite")
-    public ResponseEntity<AddFamilyMemberResponse> addFamilyMember(@PathVariable(value = "family_id") Long family_id, @RequestBody AddFamilyMemberRequest addFamilyMemberRequest) {
+    public ResponseEntity<AddFamilyMemberResponse> addFamilyMember(@PathVariable(value = "family_id") Long family_id, @RequestBody AddFamilyMemberRequest addFamilyMemberRequest) throws JsonProcessingException {
         authUtil.checkAuthority(Role.OWNER);
 
         AddFamilyMemberResponse addFamilyMemberResponse = familyService.registerMember(family_id, addFamilyMemberRequest);
