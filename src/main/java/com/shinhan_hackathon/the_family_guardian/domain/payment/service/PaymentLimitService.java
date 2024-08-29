@@ -6,8 +6,8 @@ import com.shinhan_hackathon.the_family_guardian.domain.payment.entity.PaymentLi
 import com.shinhan_hackathon.the_family_guardian.domain.payment.repository.PaymentLimitRepository;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import com.shinhan_hackathon.the_family_guardian.domain.user.repository.UserRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +32,7 @@ public class PaymentLimitService {
         return (amount_used + transactionBalance) <= maxAmountLimit;
     }
 
-     // TODO: 단건 한도 확인
+    // TODO: 단건 한도 확인
     public boolean checkSingleTransactionLimit(Long userId, Long transactionBalance) {
         // Rule 조회
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User Not Found."));
@@ -61,5 +61,9 @@ public class PaymentLimitService {
                 paymentLimit.getSingleTransactionLimit(),
                 paymentLimit.getMaxLimitAmount()
         );
+    }
+
+    public List<PaymentLimit> findAllPaymentLimit() {
+        return paymentLimitRepository.findAll();
     }
 }
