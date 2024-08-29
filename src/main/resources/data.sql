@@ -119,5 +119,83 @@ INSERT IGNORE INTO user (id, account_number, birth_date, gender, level, name, pa
 (5, '0885141500369617', '2007-09-08 00:00:00', 'MALE', 'SUPPORTER', '김은우', '3344', '010-4567-8901', '아들', 'MEMBER', 'kimeunwoo@gmail.com', NULL),
 (6, '0886372305629122', '2009-11-22 00:00:00', 'FEMALE', 'SUPPORTER', '김리나', '5566', '010-5678-9012', '딸', 'MEMBER', 'kimrina@gmail.com', NULL);
 
+INSERT IGNORE INTO family (id, approval_requirement, name, description, total_manager_count) VALUES
+(1, 2, "미영이팸", "사랑하는 가족들", 3);
+
+INSERT IGNORE INTO approval (family_id, id, user_id, accepted) VALUES
+(1, 1, 7, "ACCEPT"),
+(1, 2, 8, "ACCEPT"),
+(1, 3, 10, "ACCEPT"),
+(1, 4, 11, "ACCEPT"),
+(1, 5, 12, "ACCEPT");
+
+INSERT IGNORE INTO user (id, account_number, birth_date, gender, level, name, password, phone, relationship, role, username, family_id) VALUES
+(7, '0889353847788046', '1945-10-12 00:00:00', 'FEMALE', 'SUPPORTER', '이정자', 'summerhouse112', '010-8596-5236', '할머니', 'MANAGER', 'summerhouse@gmail.com', 1),
+(8, '0881488847698387', '1975-03-28 00:00:00', 'MALE', 'GUARDIAN', '김철수', 'fewater789', '010-2728-0424', '아빠', 'MANAGER', 'chulsoo75@gmail.com', 1),
+(9, '0888979720138047', '1978-07-05 00:00:00', 'FEMALE', 'GUARDIAN', '박미영', 'iamme0', '010-5426-6916', '엄마', 'OWNER', 'miyoung78@gmail.com', 1),
+(10, '0882302967364715', '2005-11-15 00:00:00', 'MALE', 'SUPPORTER', '김지훈', 'son1122', '010-2235-8943', '아들', 'MEMBER', 'jihoon05@gmail.com', 1),
+(11, '0889447964012154', '2008-02-20 00:00:00', 'FEMALE', 'SUPPORTER', '김수진', 'ssuper', '010-9049-0410', '딸', 'MEMBER', 'sujin08@gmail.com', 1),
+(12, '0889490281191377', '1942-01-08 00:00:00', 'MALE', 'SUPPORTER', '김동수', 'eastwater42', '010-9923-4138', '할아버지', 'MEMBER', 'eastwater42@gmail.com', 1);
+
+-- payment_limit
+INSERT IGNORE INTO payment_limit (id, amount_used, max_limit_amount, single_transaction_limit, start_date, user_id, period) VALUES
+(1, 183000, 300000, 100000, 2024-08-10, 10, "DAY15"), --아들 --15일한도:30만 -- 10만 단건 결제시 승인요청 --
+(2, 450000, 500000, 300000, 2024-08-13, 11, "DAY30"), --딸 --30일한도:50만 -- 30만 단건 결제시 승인요청 --
+(3, 200000, 2000000, 600000, 2024-08-10, 12, "DAY30"); --할아버지 --30일한도:200만 -- 60만 단건 결제시 승인요청 --
 
 
+-- transaction
+INSERT IGNORE INTO transaction (id, approve_count, status, timestamp, transaction_balance, user_id, receiver, transaction_type) VALUES
+(1, 0, 'APPROVE', '2024-08-12 10:23:45', 10000, 10, '0889353847788047', 'TRANSFER'), -- 10번: 아들, 15일 이내
+(2, 0, 'APPROVE', '2024-08-14 11:12:37', 20000, 11, '넷플릭스', 'PAYMENT'), -- 11번: 딸, 30일 이내
+(3, 0, 'APPROVE', '2024-08-20 12:47:55', 15000, 12, '카카오페이', 'PAYMENT'), -- 12번: 할아버지, 30일 이내
+(4, 0, 'APPROVE', '2024-08-15 13:29:54', 30000, 10, '쿠팡', 'PAYMENT'), -- 10번: 아들, 15일 이내
+(5, 0, 'APPROVE', '2024-08-17 14:11:22', 25000, 11, '네이버(주)', 'PAYMENT'), -- 11번: 딸, 30일 이내
+(6, 0, 'APPROVE', '2024-08-25 15:39:18', 5000, 12, '스타벅스코리아', 'PAYMENT'), -- 12번: 할아버지, 30일 이내
+(7, 0, 'APPROVE', '2024-08-11 16:50:29', 45000, 10, '0889353847788048', 'TRANSFER'), -- 10번: 아들, 15일 이내
+(8, 0, 'APPROVE', '2024-08-20 17:15:44', 6000, 11, '유튜브 프리미엄', 'PAYMENT'), -- 11번: 딸, 30일 이내
+(9, 0, 'APPROVE', '2024-08-15 18:08:56', 7000, 12, '이마트(주)', 'PAYMENT'), -- 12번: 할아버지, 30일 이내
+(10, 0, 'APPROVE', '2024-08-13 19:22:31', 12000, 10, '토스(주)', 'PAYMENT'), -- 10번: 아들, 15일 이내
+(11, 0, 'APPROVE', '2024-08-16 20:05:43', 22000, 11, '배달의민족', 'PAYMENT'), -- 11번: 딸, 30일 이내
+(12, 0, 'APPROVE', '2024-08-29 21:30:12', 18000, 12, 'LG U+', 'PAYMENT'), -- 12번: 할아버지, 30일 이내
+(13, 0, 'APPROVE', '2024-08-21 22:42:56', 40000, 10, '0889353847788049', 'TRANSFER'), -- 10번: 아들, 15일 이내
+(14, 0, 'APPROVE', '2024-08-18 23:14:07', 35000, 11, '위메프', 'PAYMENT'), -- 11번: 딸, 30일 이내
+(15, 0, 'APPROVE', '2024-08-27 00:05:23', 8000, 12, 'CJ대한통운', 'PAYMENT'), -- 12번: 할아버지, 30일 이내
+(16, 1, 'REJECT', '2024-08-24 12:23:34', 650000, 12, '0889353847788050', 'TRANSFER'), -- 12번: 할아버지 지인한테 돈 빌려주는데 1명만 승인, 나머지는 반대 reject
+(17, 0, 'REJECT', '2024-08-27 19:48:12', 700000, 12, '0889353847788050', 'TRANSFER'), -- 12번: 할아버지 보이스피싱 의심 reject
+(18, 2, 'APPROVE', '2024-08-14 16:35:57', 120000, 10, '신미마라탕', 'PAYMENT'), -- 10번: 아들이 한 번에 계산 -- 2명이 승인 approve
+(19, 0, 'REJECT', '2024-08-14 16:35:57', 300000, 10, '0889353847788048', 'TRANSFER'), -- 10번: 아들 게임과금 reject
+(20, 0, 'PENDING', '2024-08-31 19:00:41', 700000, 12, '0889353847788050', 'TRANSFER'), -- 12번: 할아버지 승인 대기 중
+(21, 0, 'PENDING', '2024-08-31 19:02:17', 200000, 10, '0889353847788048', 'TRANSFER'); -- 10번: 아들 승인 대기 중
+
+
+-- notification
+INSERT IGNORE INTO notification (id, requires_response, transaction_id, user_id, body, title, limit_type) VALUES
+(1, true, 16, 12, 'Transaction ID: 16\nType: TRANSFER\nAccount Number: 0889353847788050\nReceiver: 0889353847788050\nBalance: 650000', '결제 승인 요청', 'SINGLE_TRANSACTION_LIMIT'),
+(2, true, 17, 12, 'Transaction ID: 17\nType: TRANSFER\nAccount Number: 0889353847788050\nReceiver: 0889353847788050\nBalance: 700000', '결제 승인 요청', 'SINGLE_TRANSACTION_LIMIT'),
+(3, true, 18, 10, 'Transaction ID: 18\nType: PAYMENT\nAccount Number: 0889353847788048\nReceiver: 신미마라탕\nBalance: 120000', '결제 승인 요청', 'SINGLE_TRANSACTION_LIMIT'),
+(4, true, 19, 10, 'Transaction ID: 19\nType: TRANSFER\nAccount Number: 0889353847788048\nReceiver: 0889353847788048\nBalance: 300000', '결제 승인 요청', 'SINGLE_TRANSACTION_LIMIT'),
+(5, true, 20, 12, 'Transaction ID: 20\nType: TRANSFER\nAccount Number: 0889353847788050\nReceiver: 0889353847788050\nBalance: 700000', '결제 승인 요청', 'SINGLE_TRANSACTION_LIMIT'),
+(6, true, 21, 10, 'Transaction ID: 21\nType: TRANSFER\nAccount Number: 0889353847788048\nReceiver: 0889353847788048\nBalance: 200000', '결제 승인 요청', 'SINGLE_TRANSACTION_LIMIT');
+
+-- notification_response_status
+INSERT IGNORE INTO notification_response_status (id, guardian_id, notification_id, response_status) VALUES
+(1, 7, 17, 'REJECT'), -- 가디언 7: 12번 트랜잭션, 전체 REJECT
+(2, 8, 17, 'REJECT'), -- 가디언 8: 12번 트랜잭션, 전체 REJECT
+(3, 9, 17, 'REJECT'), -- 가디언 9: 12번 트랜잭션, 전체 REJECT
+
+(4, 7, 18, 'APPROVE'), -- 가디언 7: 10번 트랜잭션, 부분 승인
+(5, 8, 18, 'APPROVE'), -- 가디언 8: 10번 트랜잭션, 부분 승인
+(6, 9, 18, 'REJECT'),  -- 가디언 9: 10번 트랜잭션, 전체 REJECT
+
+(7, 7, 19, 'REJECT'), -- 가디언 7: 10번 트랜잭션, 전체 REJECT
+(8, 8, 19, 'REJECT'), -- 가디언 8: 10번 트랜잭션, 전체 REJECT
+(9, 9, 19, 'REJECT'), -- 가디언 9: 10번 트랜잭션, 전체 REJECT
+
+(10, 7, 20, 'NONE'), -- 가디언 7: 12번 트랜잭션, 승인 대기
+(11, 8, 20, 'NONE'), -- 가디언 8: 12번 트랜잭션, 승인 대기
+(12, 9, 20, 'NONE'), -- 가디언 9: 12번 트랜잭션, 승인 대기
+
+(13, 7, 21, 'NONE'), -- 가디언 7: 10번 트랜잭션, 승인 대기
+(14, 8, 21, 'NONE'), -- 가디언 8: 10번 트랜잭션, 승인 대기
+(15, 9, 21, 'NONE'); -- 가디언 9: 10번 트랜잭션, 승인 대기
