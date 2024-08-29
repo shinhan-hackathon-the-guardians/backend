@@ -1,10 +1,13 @@
 package com.shinhan_hackathon.the_family_guardian.domain.payment.entity;
 
+import jakarta.persistence.criteria.CriteriaBuilder.In;
 import java.sql.Timestamp;
 
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 
 import jakarta.persistence.*;
+import java.time.Instant;
+import java.time.ZoneId;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -58,6 +61,14 @@ public class PaymentLimit {
 
 	public Integer updateMaxLimitAmount(Integer maxLimitAmount) {
 		return this.maxLimitAmount = maxLimitAmount;
+	}
+
+	public void initializeAmountUsed() { // 누적 사용량을 0으로 초기화
+		this.amountUsed = 0;
+	}
+
+	public void initializeStartDate() {
+		this.startDate = Timestamp.from(Instant.now());
 	}
 
 
