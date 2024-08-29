@@ -2,6 +2,7 @@ package com.shinhan_hackathon.the_family_guardian.domain.notification.service;
 
 import com.shinhan_hackathon.the_family_guardian.domain.family.entity.Family;
 import com.shinhan_hackathon.the_family_guardian.domain.family.service.FamilyService;
+import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.NotificationHistory;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.NotificationReplyResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.PendingNotification;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.PendingNotificationResponse;
@@ -39,6 +40,7 @@ public class NotificationService {
     private final FamilyService familyService;
     private final EventPublisher eventPublisher;
     private final TransactionRepository transactionRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public NotificationBody saveNotification(TransactionInfo transactionInfo) {
@@ -117,5 +119,20 @@ public class NotificationService {
         }
         PendingNotificationResponse response = new PendingNotificationResponse(list);
         return response;
+    }
+
+    public List<NotificationHistory> findNotificationByUserId(Long userId) {
+        User user = userRepository.getReferenceById(userId);
+        List<Notification> notificationList = notificationRepository.findAllByUser(user);
+
+
+        return notificationList.stream().map(notification -> {
+            Transaction transaction = notification.getTransaction();
+            return new NotificationHistory(
+                    notification.getId(),
+                    transaction.getTransactionType(),
+                    transaction.getTransactionBalance()
+            );
+        }).toList();
     }
 }
