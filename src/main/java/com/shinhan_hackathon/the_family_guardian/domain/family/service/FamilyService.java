@@ -86,7 +86,7 @@ public class FamilyService {
                 .map(user -> new FamilyInfoResponse.FamilyUser(
                         user.getId(),
                         user.getName(),
-                        user.getPhone(),
+                        user.getBirthDate(),
                         user.getLevel(),
                         user.getRole(),
                         user.getRelationship())
