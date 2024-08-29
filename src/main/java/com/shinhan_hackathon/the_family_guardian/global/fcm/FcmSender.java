@@ -58,14 +58,9 @@ public class FcmSender implements MessageSender {
         };
     }
 
-    public void sendApprovalNotification(List<String> guardianDeviceTokenList, NotificationBody body) {
+    public void sendApprovalNotification(List<String> guardianDeviceTokenList, String body) {
         for (String deviceToken : guardianDeviceTokenList) {
-            try {
-                sendMessage(deviceToken, "승인 요청", jacksonObjectMapper.writeValueAsString(body));
-            } catch (JsonProcessingException e) {
-                log.error("fcm 전송 실패 deviceToken: {}", deviceToken);
-                e.printStackTrace();
-            }
+            sendMessage(deviceToken, "승인 요청", body);
         }
     }
 
