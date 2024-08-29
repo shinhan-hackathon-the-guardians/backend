@@ -15,6 +15,8 @@ import com.shinhan_hackathon.the_family_guardian.domain.transaction.entity.Trans
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.repository.TransactionRepository;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.service.TransactionService;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
+import com.shinhan_hackathon.the_family_guardian.domain.user.repository.UserRepository;
+import com.shinhan_hackathon.the_family_guardian.global.auth.util.AuthUtil;
 import com.shinhan_hackathon.the_family_guardian.global.event.EventPublisher;
 
 import java.util.ArrayList;
@@ -34,9 +36,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
-    private final TransactionRepository transactionRepository;
     private final FamilyService familyService;
     private final EventPublisher eventPublisher;
+    private final TransactionRepository transactionRepository;
 
     @Transactional
     public NotificationBody saveNotification(TransactionInfo transactionInfo) {
@@ -100,12 +102,17 @@ public class NotificationService {
         List<PendingNotification> list = new ArrayList<>();
 
         for(User user : family.getUsers()){
-            for(Notification notification : notificationRepository.findByUserId(user.getId())) {
-                Transaction transaction = transactionRepository.findById(notification.getTransaction().getId())
-                        .orElseThrow(EntityNotFoundException::new);
-                if(TransactionStatus.PENDING.equals(transaction.getStatus())) {
-                    list.add(new PendingNotification(notification));
+            List<Notification> notificationList = notificationRepository.findByUserId(user.getId());
+            int notificationCount = 0;
+            for(Notification notification : notificationList) {
+                Transaction transaction = notification.getTransaction();
+                if(transaction.getStatus().equals(TransactionStatus.PENDING)) {
+                    notificationCount++;
                 }
+            }
+
+            if (notificationCount > 0) {
+                list.add(new PendingNotification(user.getId(), user.getName(), notificationCount));
             }
         }
         PendingNotificationResponse response = new PendingNotificationResponse(list);
