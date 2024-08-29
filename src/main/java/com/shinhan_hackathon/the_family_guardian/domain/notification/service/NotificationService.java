@@ -1,15 +1,27 @@
 package com.shinhan_hackathon.the_family_guardian.domain.notification.service;
 
+import com.shinhan_hackathon.the_family_guardian.domain.family.entity.Family;
+import com.shinhan_hackathon.the_family_guardian.domain.family.service.FamilyService;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.NotificationReplyResponse;
+import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.PendingNotification;
+import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.PendingNotificationResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.entity.Notification;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.entity.ResponseStatus;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.repository.NotificationRepository;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.NotificationBody;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.TransactionInfo;
+import com.shinhan_hackathon.the_family_guardian.domain.transaction.entity.Transaction;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.entity.TransactionStatus;
+import com.shinhan_hackathon.the_family_guardian.domain.transaction.repository.TransactionRepository;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.service.TransactionService;
+import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import com.shinhan_hackathon.the_family_guardian.global.event.EventPublisher;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,6 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final TransactionRepository transactionRepository;
+    private final FamilyService familyService;
     private final EventPublisher eventPublisher;
 
     @Transactional
@@ -79,5 +93,22 @@ public class NotificationService {
                 approveCount,
                 rejectCount
         );
+    }
+
+    public PendingNotificationResponse getPendingNotification(Long groupId) {
+        Family family = familyService.findByGroupId(groupId);
+        List<PendingNotification> list = new ArrayList<>();
+
+        for(User user : family.getUsers()){
+            for(Notification notification : notificationRepository.findByUserId(user.getId())) {
+                Transaction transaction = transactionRepository.findById(notification.getTransaction().getId())
+                        .orElseThrow(EntityNotFoundException::new);
+                if(TransactionStatus.PENDING.equals(transaction.getStatus())) {
+                    list.add(new PendingNotification(notification));
+                }
+            }
+        }
+        PendingNotificationResponse response = new PendingNotificationResponse(list);
+        return response;
     }
 }

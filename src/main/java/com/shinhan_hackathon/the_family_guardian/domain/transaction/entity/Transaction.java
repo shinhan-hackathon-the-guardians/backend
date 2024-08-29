@@ -37,6 +37,7 @@ public class Transaction {
     private Timestamp timestamp; // 요청을 받은 Timestamp, Timeout 확인을 위해 사용
 
     @Column(nullable = false, length = 20)
+    @Enumerated(EnumType.STRING)
     private TransactionStatus status; // 요청의 최종 결과 -> 차단, 승인
 
     private int approveCount; // 승인된 요청 횟수

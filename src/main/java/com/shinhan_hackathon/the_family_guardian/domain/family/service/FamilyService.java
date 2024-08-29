@@ -10,6 +10,7 @@ import com.shinhan_hackathon.the_family_guardian.domain.user.repository.UserRepo
 import com.shinhan_hackathon.the_family_guardian.domain.user.service.UserService;
 import com.shinhan_hackathon.the_family_guardian.global.auth.dto.UserPrincipal;
 import com.shinhan_hackathon.the_family_guardian.global.auth.util.AuthUtil;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -187,5 +188,11 @@ public class FamilyService {
     public Family getFamilyForUpdate(Long id) {
         return familyRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new RuntimeException("해당 가족이 없습니다."));
+    }
+
+    public Family findByGroupId(Long groupId) {
+        Family family = familyRepository.findById(groupId)
+                .orElseThrow(EntityNotFoundException::new);
+        return family;
     }
 }

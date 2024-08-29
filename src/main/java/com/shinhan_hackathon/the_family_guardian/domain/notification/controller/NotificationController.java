@@ -2,13 +2,11 @@ package com.shinhan_hackathon.the_family_guardian.domain.notification.controller
 
 import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.NotificationReplyRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.NotificationReplyResponse;
+import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.PendingNotificationResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
@@ -24,5 +22,10 @@ public class NotificationController {
         );
 
         return ResponseEntity.ok(notificationReplyResponse);
+    }
+
+    @GetMapping("/group/{group_id}")
+    public ResponseEntity<PendingNotificationResponse> getPendingNotification(@PathVariable Long group_id) {
+        return ResponseEntity.ok(notificationService.getPendingNotification(group_id));
     }
 }
