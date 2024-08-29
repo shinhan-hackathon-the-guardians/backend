@@ -13,8 +13,10 @@ import com.shinhan_hackathon.the_family_guardian.domain.payment.service.PaymentL
 import com.shinhan_hackathon.the_family_guardian.domain.user.dto.AccountAuthResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.user.dto.SignupRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.user.dto.UpdateDeviceTokenResponse;
+import com.shinhan_hackathon.the_family_guardian.domain.user.dto.UserInfoResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import com.shinhan_hackathon.the_family_guardian.domain.user.repository.UserRepository;
+import com.shinhan_hackathon.the_family_guardian.global.auth.dto.UserPrincipal;
 import com.shinhan_hackathon.the_family_guardian.global.auth.util.AuthUtil;
 import com.shinhan_hackathon.the_family_guardian.global.redis.service.RedisService;
 import java.sql.Timestamp;
@@ -27,6 +29,8 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -197,6 +201,25 @@ public class UserService {
             }
             default -> throw new IllegalArgumentException("Unknown period: " + period);
         }
+    }
+
+    public Long getUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        return userPrincipal.user().getId();
+    }
+
+    public UserInfoResponse getUserInfo() {
+        log.info("UserService.getUserInfo() is called.");
+        User user = getUser(getUserId());
+
+        return UserInfoResponse.builder()
+                .name(user.getName())
+                .level(user.getLevel())
+                .role(user.getRole())
+                .familyId(user.getFamily().getId())
+                .familyName(user.getFamily().getName())
+                .build();
     }
 
     // TODO: PaymentLimitList 조회
