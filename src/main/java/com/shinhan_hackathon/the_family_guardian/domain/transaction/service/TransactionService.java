@@ -277,6 +277,7 @@ public class TransactionService {
 
     // TODO: 시간제한에 걸려 자동으로 요청 취소
     @Scheduled(fixedRate = 60000)
+    @Transactional
     public void updateTimeoutTransaction() {
         log.info("TransactionService.updateTimeoutTransaction() is called.");
         List<Transaction> transactionList = transactionRepository.findAllByStatus(TransactionStatus.PENDING);
@@ -285,7 +286,7 @@ public class TransactionService {
         transactionList.stream()
         .filter(transaction -> {
            LocalDateTime transactionTime = LocalDateTime.ofInstant(transaction.getTimestamp().toInstant(), ZoneId.systemDefault());
-            Long minuteElapsed = ChronoUnit.MINUTES.between(transactionTime, now);
+            long minuteElapsed = ChronoUnit.MINUTES.between(transactionTime, now);
             return minuteElapsed > TIMEOUT;
         })
         .forEach(transaction -> {
