@@ -286,7 +286,7 @@ public class TransactionService {
         transactionList.stream()
         .filter(transaction -> {
            LocalDateTime transactionTime = LocalDateTime.ofInstant(transaction.getTimestamp().toInstant(), ZoneId.systemDefault());
-            Long minuteElapsed = ChronoUnit.MINUTES.between(transactionTime, now);
+            long minuteElapsed = ChronoUnit.MINUTES.between(transactionTime, now);
             return minuteElapsed > TIMEOUT;
         })
         .forEach(transaction -> {
