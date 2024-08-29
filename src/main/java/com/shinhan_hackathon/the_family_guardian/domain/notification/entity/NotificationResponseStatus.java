@@ -37,4 +37,8 @@ public class NotificationResponseStatus {
         this.notification = notification;
         this.responseStatus = responseStatus;
     }
+
+    public ResponseStatus updateResponseStatus(ResponseStatus responseStatus) {
+        return this.responseStatus = responseStatus;
+    }
 }

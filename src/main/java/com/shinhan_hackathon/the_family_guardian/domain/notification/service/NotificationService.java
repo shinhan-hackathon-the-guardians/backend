@@ -81,7 +81,8 @@ public class NotificationService {
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 알림입니다."));
 
         String eventTrackingId = UUID.randomUUID().toString();
-        TransactionStatus transactionStatus = TransactionStatus.PENDING;
+        TransactionStatus transactionStatus = null;
+        ResponseStatus responseStatus = null;
         int approveCount = notification.getTransaction().getApproveCount();
         int rejectCount = notification.getTransaction().getRejectCount();
 
@@ -89,11 +90,18 @@ public class NotificationService {
             notification.getTransaction().incrementApproveCount();
             eventPublisher.publishTransactionApproveEvent(eventTrackingId, notificationId);
             transactionStatus = TransactionStatus.APPROVE;
+            responseStatus = ResponseStatus.APPROVE;
         } else {
             notification.getTransaction().incrementRejectCount();
             eventPublisher.publishTransactionRejectEvent(eventTrackingId, notificationId);
             transactionStatus = TransactionStatus.REJECT;
+            responseStatus = ResponseStatus.REJECT;
         }
+
+        User guardian = authUtil.getUserPrincipal().user();
+        NotificationResponseStatus notificationResponseStatus = notificationResponseStatusRepository.findByGuardianAndNotification(guardian, notification)
+                .orElseThrow(() -> new RuntimeException("알림 응답 객체가 없습니다."));
+        notificationResponseStatus.updateResponseStatus(responseStatus);
 
         return new NotificationReplyResponse(
                 notification.getTransaction().getId(),
