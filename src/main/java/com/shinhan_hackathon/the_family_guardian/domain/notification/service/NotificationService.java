@@ -48,7 +48,7 @@ public class NotificationService {
     private final AuthUtil authUtil;
 
     @Transactional
-    public NotificationBody saveNotification(TransactionInfo transactionInfo) {
+    public Notification saveNotification(TransactionInfo transactionInfo) {
 
         NotificationBody notificationBody = new NotificationBody(
                 transactionInfo.transaction().getId(),
@@ -67,8 +67,7 @@ public class NotificationService {
                 .requiresResponse(true)
                 .build();
 
-        notificationRepository.save(notification);
-        return notificationBody;
+        return notificationRepository.save(notification);
     }
 
     @Transactional
