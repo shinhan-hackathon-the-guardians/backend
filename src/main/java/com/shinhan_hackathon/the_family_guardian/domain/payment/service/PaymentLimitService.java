@@ -1,5 +1,7 @@
 package com.shinhan_hackathon.the_family_guardian.domain.payment.service;
 
+import java.util.List;
+
 import com.shinhan_hackathon.the_family_guardian.domain.payment.entity.PaymentLimit;
 import com.shinhan_hackathon.the_family_guardian.domain.payment.repository.PaymentLimitRepository;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
@@ -41,5 +43,9 @@ public class PaymentLimitService {
 
         // 단건 한도를 초과하면 False
         return transactionBalance >= singleTransactionLimit;
+    }
+
+    public List<PaymentLimit> findAllPaymentLimit() {
+        return paymentLimitRepository.findAll();
     }
 }
