@@ -31,10 +31,10 @@ public class NotificationController {
         return ResponseEntity.ok(notificationReplyResponse);
     }
 
-    @GetMapping("/group/{group_id}")
-    public ResponseEntity<PendingNotificationResponse> getPendingNotification(@PathVariable Long group_id) {
+    @GetMapping("/unanswered}")
+    public ResponseEntity<PendingNotificationResponse> getPendingNotification() {
         authUtil.checkAuthority(Role.MANAGER, Role.OWNER);
-        PendingNotificationResponse pendingNotification = notificationService.getPendingNotification(group_id);
+        PendingNotificationResponse pendingNotification = notificationService.findUnansweredNotification();
         return ResponseEntity.ok(pendingNotification);
     }
 
