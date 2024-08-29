@@ -19,6 +19,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -86,7 +87,7 @@ public class FamilyService {
                 .map(user -> new FamilyInfoResponse.FamilyUser(
                         user.getId(),
                         user.getName(),
-                        user.getBirthDate(),
+                        user.getBirthDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
                         user.getLevel(),
                         user.getRole(),
                         user.getRelationship())

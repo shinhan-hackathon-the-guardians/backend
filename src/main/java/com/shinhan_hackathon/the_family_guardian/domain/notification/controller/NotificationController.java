@@ -31,7 +31,7 @@ public class NotificationController {
         return ResponseEntity.ok(notificationReplyResponse);
     }
 
-    @GetMapping("/unanswered}")
+    @GetMapping("/unanswered")
     public ResponseEntity<PendingNotificationResponse> getPendingNotification() {
         authUtil.checkAuthority(Role.MANAGER, Role.OWNER);
         PendingNotificationResponse pendingNotification = notificationService.findUnansweredNotification();

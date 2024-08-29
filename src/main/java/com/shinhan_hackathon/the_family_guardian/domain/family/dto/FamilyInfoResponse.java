@@ -16,7 +16,7 @@ public record FamilyInfoResponse (
     public record FamilyUser (
             Long id,
             String name,
-            LocalDate birthDate,
+            String birthDate,
             Level level,
             Role role,
             String relationship
