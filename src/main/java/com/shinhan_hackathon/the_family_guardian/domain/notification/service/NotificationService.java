@@ -7,8 +7,10 @@ import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.Notific
 import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.PendingNotification;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.PendingNotificationResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.entity.Notification;
+import com.shinhan_hackathon.the_family_guardian.domain.notification.entity.NotificationResponseStatus;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.entity.ResponseStatus;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.repository.NotificationRepository;
+import com.shinhan_hackathon.the_family_guardian.domain.notification.repository.NotificationResponseStatusRepository;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.NotificationBody;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.TransactionInfo;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.entity.Transaction;
@@ -22,6 +24,7 @@ import com.shinhan_hackathon.the_family_guardian.global.event.EventPublisher;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -41,6 +44,8 @@ public class NotificationService {
     private final EventPublisher eventPublisher;
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
+    private final NotificationResponseStatusRepository notificationResponseStatusRepository;
+    private final AuthUtil authUtil;
 
     @Transactional
     public NotificationBody saveNotification(TransactionInfo transactionInfo) {
@@ -134,5 +139,26 @@ public class NotificationService {
                     transaction.getTransactionBalance()
             );
         }).toList();
+    }
+
+    public NotificationBody findNotification(Long notificationId) {
+        Long userId = Long.valueOf(authUtil.getUserPrincipal().getUsername());
+        User guardian = userRepository.getReferenceById(userId);
+        Notification notification = notificationRepository.getReferenceById(notificationId);
+        NotificationResponseStatus responseStatus = notificationResponseStatusRepository.findByGuardianAndNotification(guardian, notification)
+                .orElseThrow(() -> new RuntimeException("없는 알림입니다."));
+
+        if (!responseStatus.getResponseStatus().equals(ResponseStatus.NONE)) {
+            throw new RuntimeException("이미 응답한 알림입니다.");
+        }
+
+        Transaction transaction = notification.getTransaction();
+        return new NotificationBody(
+                notification.getId(),
+                transaction.getTransactionType(),
+                transaction.getUser().getAccountNumber(),
+                transaction.getReceiver(),
+                transaction.getTransactionBalance()
+        );
     }
 }

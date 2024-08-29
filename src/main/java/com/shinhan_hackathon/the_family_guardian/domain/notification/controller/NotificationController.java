@@ -5,6 +5,7 @@ import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.Notific
 import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.NotificationReplyResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.PendingNotificationResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.service.NotificationService;
+import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.NotificationBody;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.Role;
 import com.shinhan_hackathon.the_family_guardian.global.auth.util.AuthUtil;
 import lombok.RequiredArgsConstructor;
@@ -41,5 +42,13 @@ public class NotificationController {
     public ResponseEntity<List<NotificationHistory>> getUserNotification(@PathVariable(value = "user_id") Long userId) {
         List<NotificationHistory> notificationByUserId = notificationService.findNotificationByUserId(userId);
         return ResponseEntity.ok(notificationByUserId);
+    }
+
+    @GetMapping("/{notification_id}")
+    public ResponseEntity<NotificationBody> getNotification(@PathVariable(value = "notification_id") Long notificationId) {
+        authUtil.checkAuthority(Role.MANAGER, Role.OWNER);
+
+        NotificationBody notificationBody = notificationService.findNotification(notificationId);
+        return ResponseEntity.ok(notificationBody);
     }
 }
