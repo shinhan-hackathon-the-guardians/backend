@@ -121,7 +121,7 @@ public class UserService {
         AccountTransactionHistoryResponse accountTransactionHistoryResponse = accountService.inquireTransactionHistory(
                 accountNo, openAccountAuthResponse.rec().transactionUniqueNo());
         String transactionSummary = accountTransactionHistoryResponse.getRec().getTransactionSummary();
-        return transactionSummary;//.split(" ")[1];
+        return transactionSummary;
     }
 
     public AccountAuthResponse checkAccountAuth(String accountNo, String authCode, String csrfToken) {
