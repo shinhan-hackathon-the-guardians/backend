@@ -37,7 +37,7 @@ public class ChatController {
 				"보호하고 있어. 그리고 서포터들의 사용 금액을 모니터링하며 관리해줄 수도 있어. 이제부터 금융상식이나 우리 '더 패밀리 가디언" +
 				"에 대해서 질문을 할건데 너가 묻는 말에 친절하게 대답을 해줘. 그리고 너가 누구냐는 식의 질문 외에는 너의 소개는 하지 않아도 돼! 이제 질문할게! \n";
 		String vertexAiGeminiResponse = vertexAiGeminiChatModel.call(prompt + message);
-		responses.put("Guardi의 응답", vertexAiGeminiResponse);
+		responses.put("message", vertexAiGeminiResponse);
 
 		chatService.saveMessage(getUserId(), message.message(), true);
 		chatService.saveMessage(getUserId(), vertexAiGeminiResponse, false);
