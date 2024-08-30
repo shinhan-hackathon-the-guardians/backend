@@ -19,6 +19,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +56,7 @@ public class FamilyService {
                 .approvalRequirement(createFamilyRequest.approvalRequirement())
                 .users(new ArrayList<>(List.of(user)))
                 .totalManagerCount(1)
+                .created_at(LocalDate.now(ZoneId.systemDefault()))
                 .build();
 
         Family savedFamily = familyRepository.save(family);
