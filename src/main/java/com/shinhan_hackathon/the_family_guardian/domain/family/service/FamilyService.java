@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -204,5 +205,23 @@ public class FamilyService {
         Family family = familyRepository.findById(groupId)
                 .orElseThrow(EntityNotFoundException::new);
         return family;
+    }
+
+
+    public FamilyUserResponse findFamilyUsers(Long familyId) {
+        isValidFamilyUser(familyId);
+
+        Family family = getFamilyFromDatabase(familyId);
+        List<FamilyUserResponse.FamilyUser> familyUserList = family.getUsers().stream().map(user -> new FamilyUserResponse.FamilyUser(
+                user.getId(),
+                user.getName(),
+                user.getBirthDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
+                user.getLevel(),
+                user.getRole(),
+                user.getRelationship()
+        )).toList();
+
+        return new FamilyUserResponse(familyUserList);
+
     }
 }
