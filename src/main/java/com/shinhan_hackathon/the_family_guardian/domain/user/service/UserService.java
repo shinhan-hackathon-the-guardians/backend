@@ -96,7 +96,7 @@ public class UserService {
 
         String accountAuthCode = getAccountAuthCode(accountNo, openAccountAuthResponse);
         log.info("[NOTIFICATION] account auth code: {}", accountAuthCode);
-        fcmSender.sendMessage(deviceToken, "계좌 입금", accountAuthCode);
+        fcmSender.sendMessage(deviceToken, "인증", accountAuthCode+","+"신한 "+accountNo+",1");
 
         return new AccountAuthResponse(openAccountAuthResponse.rec().accountNo(), csrfToken);
     }
