@@ -231,14 +231,13 @@ public class TransactionService {
 	@Transactional
 	public void updatePayment(PaymentRequest paymentRequest) {
 		log.info("TransactionService.updatePayment() is called.");
-		Long userId = getUserId();
-		User user = userService.getUser(userId);
+		User user = findByAccountNo(paymentRequest.accountNumber());
 
 		TransactionStatus transactionStatus = null;
 		PaymentLimitType paymentLimitType = null;
 		// TODO: Rule Check
-		if (paymentLimitService.checkMaxAmountLimit(userId, paymentRequest.transactionBalance())) {
-			if (paymentLimitService.checkSingleTransactionLimit(userId, paymentRequest.transactionBalance())) { // 승인
+		if (paymentLimitService.checkMaxAmountLimit(user.getId(), paymentRequest.transactionBalance())) {
+			if (paymentLimitService.checkSingleTransactionLimit(user.getId(), paymentRequest.transactionBalance())) { // 승인
 				accountService.updateAccountDeposit(user.getAccountNumber(), paymentRequest.transactionBalance());
 				// 결제
 				// TODO: 결제 성공 알림
