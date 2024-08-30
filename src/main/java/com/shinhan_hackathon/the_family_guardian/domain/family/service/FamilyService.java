@@ -106,7 +106,7 @@ public class FamilyService {
             throw new AccessDeniedException("소속된 가족이 아닙니다.");
         }
 
-        Family family = familyRepository.findById(1L)
+        Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new RuntimeException("소속된 가족이 없습니다."));
 
         if (!family.getName().equals(updateFamilyRequest.name())) {
