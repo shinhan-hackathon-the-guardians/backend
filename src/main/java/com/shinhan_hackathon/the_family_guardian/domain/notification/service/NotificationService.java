@@ -164,29 +164,6 @@ public class NotificationService {
         return new PendingNotificationResponse(pendingNotifications);
     }
 
-    @Deprecated
-    public PendingNotificationResponse getPendingNotification(Long groupId) {
-        Family family = familyService.findByGroupId(groupId);
-        List<PendingNotification> list = new ArrayList<>();
-
-        for(User user : family.getUsers()){
-            List<Notification> notificationList = notificationRepository.findByUserId(user.getId());
-            int notificationCount = 0;
-            for(Notification notification : notificationList) {
-                Transaction transaction = notification.getTransaction();
-                if(transaction.getStatus().equals(TransactionStatus.PENDING)) {
-                    notificationCount++;
-                }
-            }
-
-            if (notificationCount > 0) {
-                list.add(new PendingNotification(user.getId(), user.getName(), notificationCount));
-            }
-        }
-        PendingNotificationResponse response = new PendingNotificationResponse(list);
-        return response;
-    }
-
     public List<NotificationHistory> findNotificationByUserId(Long userId) {
         User user = userRepository.getReferenceById(userId);
         List<Notification> notificationList = notificationRepository.findAllByUser(user);
