@@ -56,7 +56,7 @@ public class FamilyService {
                 .approvalRequirement(createFamilyRequest.approvalRequirement())
                 .users(new ArrayList<>(List.of(user)))
                 .totalManagerCount(1)
-                .created_at(LocalDate.now(ZoneId.systemDefault()))
+                .createdAt(LocalDate.now(ZoneId.systemDefault()))
                 .build();
 
         Family savedFamily = familyRepository.save(family);
@@ -86,21 +86,11 @@ public class FamilyService {
         }
 
         Family family = getFamilyFromDatabase(familyId);
-        List<FamilyInfoResponse.FamilyUser> familyUserList = family.getUsers().stream()
-                .map(user -> new FamilyInfoResponse.FamilyUser(
-                        user.getId(),
-                        user.getName(),
-                        user.getBirthDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
-                        user.getLevel(),
-                        user.getRole(),
-                        user.getRelationship())
-                )
-                .toList();
         return new FamilyInfoResponse(
                 family.getName(),
                 family.getDescription(),
                 family.getApprovalRequirement(),
-                familyUserList
+                family.getCreatedAt()
         );
     }
     private Family getFamilyFromDatabase(Long familyId) {
