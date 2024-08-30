@@ -76,13 +76,20 @@ public class UserService {
         );
         paymentLimitRepository.save(paymentLimit);
 
+        Long familyId = null;
+        String familyName = null;
+        if (user.getFamily() != null) {
+            familyId = user.getFamily().getId();
+            familyName = user.getFamily().getName();
+        }
+
         return new SignupResponse(
                 user.getId(),
                 user.getName(),
                 user.getLevel(),
                 user.getRole(),
-                user.getFamily().getId(),
-                user.getFamily().getName()
+                familyId,
+                familyName
         );
     }
 
