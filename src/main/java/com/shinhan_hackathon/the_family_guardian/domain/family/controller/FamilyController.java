@@ -20,7 +20,7 @@ public class FamilyController {
 
     @GetMapping("/{family_id}")
     public ResponseEntity<FamilyInfoResponse> getFamilyInfoById(@PathVariable(value = "family_id") Long familyId) {
-        FamilyInfoResponse familyInfo = familyService.getFamilyInfo(familyId);
+        FamilyInfoResponse familyInfo = familyService.findFamilyInfo(familyId);
         return ResponseEntity.ok(familyInfo);
     }
 
@@ -38,6 +38,12 @@ public class FamilyController {
 
         UpdateFamilyResponse updateFamilyResponse = familyService.updateFamily(familyId, updateFamilyRequest);
         return ResponseEntity.ok(updateFamilyResponse);
+    }
+
+    @GetMapping("/{family_id}/users")
+    public ResponseEntity<FamilyUserResponse> getFamilyUsers(@PathVariable(value = "family_id") Long familyId) {
+        FamilyUserResponse familyUsers = familyService.findFamilyUsers(familyId);
+        return ResponseEntity.ok(familyUsers);
     }
 
     @PostMapping("/{family_id}/invite")

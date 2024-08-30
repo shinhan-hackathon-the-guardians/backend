@@ -19,10 +19,11 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
@@ -54,6 +55,7 @@ public class FamilyService {
                 .approvalRequirement(createFamilyRequest.approvalRequirement())
                 .users(new ArrayList<>(List.of(user)))
                 .totalManagerCount(1)
+                .createdAt(LocalDate.now(ZoneId.systemDefault()))
                 .build();
 
         Family savedFamily = familyRepository.save(family);
@@ -69,7 +71,19 @@ public class FamilyService {
         );
     }
 
-    public FamilyInfoResponse getFamilyInfo(Long familyId) {
+    public FamilyInfoResponse findFamilyInfo(Long familyId) {
+        isValidFamilyUser(familyId);
+
+        Family family = getFamilyFromDatabase(familyId);
+        return new FamilyInfoResponse(
+                family.getName(),
+                family.getDescription(),
+                family.getApprovalRequirement(),
+                family.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
+        );
+    }
+
+    private void isValidFamilyUser(Long familyId) {
         UserPrincipal userPrincipal = authUtil.getUserPrincipal();
         Family userFamily = userPrincipal.getFamily();
 
@@ -81,25 +95,8 @@ public class FamilyService {
         if (!userFamilyId.equals(familyId)) {
             throw new AccessDeniedException("소속된 가족이 아닙니다..");
         }
-
-        Family family = getFamilyFromDatabase(familyId);
-        List<FamilyInfoResponse.FamilyUser> familyUserList = family.getUsers().stream()
-                .map(user -> new FamilyInfoResponse.FamilyUser(
-                        user.getId(),
-                        user.getName(),
-                        user.getBirthDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
-                        user.getLevel(),
-                        user.getRole(),
-                        user.getRelationship())
-                )
-                .toList();
-        return new FamilyInfoResponse(
-                family.getName(),
-                family.getDescription(),
-                family.getApprovalRequirement(),
-                familyUserList
-        );
     }
+
     private Family getFamilyFromDatabase(Long familyId) {
         return familyRepository.findById(familyId).orElseThrow(() -> new RuntimeException("가족이 존재하지 않습니다."));
     }
@@ -113,8 +110,7 @@ public class FamilyService {
             throw new AccessDeniedException("소속된 가족이 아닙니다.");
         }
 
-        Family family = familyRepository.findById(1L)
-                .orElseThrow(() -> new RuntimeException("소속된 가족이 없습니다."));
+        Family family = getFamilyFromDatabase(familyId);
 
         if (!family.getName().equals(updateFamilyRequest.name())) {
             family.updateName(updateFamilyRequest.name());
@@ -209,5 +205,23 @@ public class FamilyService {
         Family family = familyRepository.findById(groupId)
                 .orElseThrow(EntityNotFoundException::new);
         return family;
+    }
+
+
+    public FamilyUserResponse findFamilyUsers(Long familyId) {
+        isValidFamilyUser(familyId);
+
+        Family family = getFamilyFromDatabase(familyId);
+        List<FamilyUserResponse.FamilyUser> familyUserList = family.getUsers().stream().map(user -> new FamilyUserResponse.FamilyUser(
+                user.getId(),
+                user.getName(),
+                user.getBirthDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
+                user.getLevel(),
+                user.getRole(),
+                user.getRelationship()
+        )).toList();
+
+        return new FamilyUserResponse(familyUserList);
+
     }
 }

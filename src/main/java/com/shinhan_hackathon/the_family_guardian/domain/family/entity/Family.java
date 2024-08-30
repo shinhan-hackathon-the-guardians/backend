@@ -4,6 +4,7 @@ import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -32,13 +33,17 @@ public class Family {
     @Column(nullable = false)
     private Integer totalManagerCount; // TODO: Default로 Owner가 있으니까 1? default 0에서 그룹 생성할 때 owner 등록하면서 +1?
 
+    @Column(nullable = false)
+    private LocalDate createdAt;
+
     @Builder
-    public Family(String name, String description, int approvalRequirement, List<User> users, Integer totalManagerCount) {
+    public Family(String name, String description, int approvalRequirement, List<User> users, Integer totalManagerCount, LocalDate createdAt) {
         this.name = name;
         this.description = description;
         this.approvalRequirement = approvalRequirement;
         this.users = users;
         this.totalManagerCount = totalManagerCount;
+        this.createdAt = createdAt;
     }
 
     public int increaseTotalManagerCount() {
