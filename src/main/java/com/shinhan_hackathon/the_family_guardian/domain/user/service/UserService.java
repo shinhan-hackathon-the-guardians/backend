@@ -25,6 +25,7 @@ import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import com.shinhan_hackathon.the_family_guardian.domain.user.repository.UserRepository;
 import com.shinhan_hackathon.the_family_guardian.global.auth.dto.UserPrincipal;
 import com.shinhan_hackathon.the_family_guardian.global.auth.util.AuthUtil;
+import com.shinhan_hackathon.the_family_guardian.global.fcm.FcmSender;
 import com.shinhan_hackathon.the_family_guardian.global.redis.service.RedisService;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -59,6 +60,7 @@ public class UserService {
     private final PaymentLimitRepository paymentLimitRepository;
     private final ApprovalService approvalService;
     private final ApprovalRepository approvalRepository;
+    private final FcmSender fcmSender;
 
     @Transactional
     public void createUser(SignupRequest signupRequest) {
@@ -80,7 +82,7 @@ public class UserService {
         paymentLimitRepository.save(paymentLimit);
     }
 
-    public AccountAuthResponse openAccountAuth(String accountNo) {
+    public AccountAuthResponse openAccountAuth(String accountNo, String deviceToken) {
         OpenAccountAuthResponse openAccountAuthResponse = accountAuthService.openAccountAuth(accountNo);
 
         BankUtil.validateBankApiResponse(openAccountAuthResponse.header());
@@ -94,6 +96,7 @@ public class UserService {
 
         String accountAuthCode = getAccountAuthCode(accountNo, openAccountAuthResponse);
         log.info("[NOTIFICATION] account auth code: {}", accountAuthCode);
+        fcmSender.sendMessage(deviceToken, "계좌 입금", accountAuthCode);
 
         return new AccountAuthResponse(openAccountAuthResponse.rec().accountNo(), csrfToken);
     }
@@ -102,7 +105,7 @@ public class UserService {
         AccountTransactionHistoryResponse accountTransactionHistoryResponse = accountService.inquireTransactionHistory(
                 accountNo, openAccountAuthResponse.rec().transactionUniqueNo());
         String transactionSummary = accountTransactionHistoryResponse.getRec().getTransactionSummary();
-        return transactionSummary.split(" ")[1];
+        return transactionSummary;//.split(" ")[1];
     }
 
     public AccountAuthResponse checkAccountAuth(String accountNo, String authCode, String csrfToken) {
