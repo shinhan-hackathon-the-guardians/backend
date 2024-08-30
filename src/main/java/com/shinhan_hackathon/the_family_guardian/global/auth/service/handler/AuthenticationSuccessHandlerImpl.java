@@ -16,7 +16,7 @@ public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHa
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException{
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-
+        response.setCharacterEncoding("UTF-8");
         UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
 
         Long familyId = null;
