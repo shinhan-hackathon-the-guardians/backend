@@ -55,7 +55,7 @@ public class FamilyController {
     }
 
     @PostMapping("/{family_id}/userRole")
-    public ResponseEntity updateFamilyUserRole(@PathVariable(value = "family_id") Long familyId, @RequestBody UpdateUserRoleRequest updateUserRoleRequest) {
+    public ResponseEntity<UpdateUserRoleResponse> updateFamilyUserRole(@PathVariable(value = "family_id") Long familyId, @RequestBody UpdateUserRoleRequest updateUserRoleRequest) {
         authUtil.checkAuthority(Role.OWNER);
         if (updateUserRoleRequest.newRole().equals(Role.NONE) ||
         updateUserRoleRequest.newRole().equals(Role.OWNER)) {
