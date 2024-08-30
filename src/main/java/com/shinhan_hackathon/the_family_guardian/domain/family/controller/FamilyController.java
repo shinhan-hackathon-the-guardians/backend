@@ -40,6 +40,12 @@ public class FamilyController {
         return ResponseEntity.ok(updateFamilyResponse);
     }
 
+    @GetMapping("/{family_id}/users")
+    public ResponseEntity<FamilyUserResponse> getFamilyUsers(@PathVariable(value = "family_id") Long familyId) {
+        FamilyUserResponse familyUsers = familyService.findFamilyUsers(familyId);
+        return ResponseEntity.ok(familyUsers);
+    }
+
     @PostMapping("/{family_id}/invite")
     public ResponseEntity<AddFamilyMemberResponse> addFamilyMember(@PathVariable(value = "family_id") Long family_id, @RequestBody AddFamilyMemberRequest addFamilyMemberRequest) throws JsonProcessingException {
         authUtil.checkAuthority(Role.OWNER);
