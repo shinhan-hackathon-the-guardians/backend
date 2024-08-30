@@ -149,7 +149,7 @@ public class FamilyService {
         String notificationBody = jacksonObjectMapper.writeValueAsString(familyInviteNotification);
         fcmSender.sendMessage(
                 user.getDeviceToken(),
-                "가족 초대 알림",
+                "가족초대",
                 notificationBody
         );
 
