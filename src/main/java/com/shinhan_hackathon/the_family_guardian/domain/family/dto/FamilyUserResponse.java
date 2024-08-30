@@ -12,7 +12,7 @@ public record FamilyUserResponse(
     public record FamilyUser (
             Long id,
             String name,
-            String birthDate,
+            String birthdate,
             Level level,
             Role role,
             String relationship
