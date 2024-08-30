@@ -17,13 +17,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.shinhan_hackathon.the_family_guardian.bank.dto.response.AccountTransactionHistoryListResponse;
 import com.shinhan_hackathon.the_family_guardian.bank.service.AccountService;
+import com.shinhan_hackathon.the_family_guardian.domain.notification.entity.Notification;
+import com.shinhan_hackathon.the_family_guardian.domain.notification.entity.NotificationResponseStatus;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.entity.PaymentLimitType;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.entity.ResponseStatus;
+import com.shinhan_hackathon.the_family_guardian.domain.notification.repository.NotificationResponseStatusRepository;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.service.NotificationService;
 import com.shinhan_hackathon.the_family_guardian.domain.payment.service.PaymentLimitService;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.DepositInfo;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.DepositRequest;
-import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.NotificationBody;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.PaymentRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.TransactionInfo;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.TransactionResponse;
@@ -59,6 +61,7 @@ public class TransactionService {
 	private final NotificationService notificationService;
 	private final List<Role> familyGuardianRole = List.of(Role.MANAGER, Role.OWNER);
 	private final int TIMEOUT = 10;
+	private final NotificationResponseStatusRepository notificationResponseStatusRepository;
 
 	public List<TransactionResponse> getTransactionHistory(Long userId, Pageable pageable) {
 		log.info("TransactionService.getTransactionHistory() is called.");
@@ -237,7 +240,8 @@ public class TransactionService {
 		PaymentLimitType paymentLimitType = null;
 		// TODO: Rule Check
 		if (paymentLimitService.checkMaxAmountLimit(user.getId(), paymentRequest.transactionBalance())) {
-			if (paymentLimitService.checkSingleTransactionLimit(user.getId(), paymentRequest.transactionBalance())) { // 승인
+			if (paymentLimitService.checkSingleTransactionLimit(user.getId(),
+				paymentRequest.transactionBalance())) { // 승인
 				accountService.updateAccountDeposit(user.getAccountNumber(), paymentRequest.transactionBalance());
 				// 결제
 				// TODO: 결제 성공 알림
@@ -276,14 +280,20 @@ public class TransactionService {
 	}
 
 	// Guardian에게 승인 메시지 전송
-	private void sendGuardianApprovalMessage(User user, Transaction transaction, PaymentLimitType paymentLimitType) {
+	@Transactional
+	protected void sendGuardianApprovalMessage(User user, Transaction transaction, PaymentLimitType paymentLimitType) {
 		TransactionInfo transactionInfo = new TransactionInfo(user, transaction, paymentLimitType);
-		NotificationBody notificationBody = notificationService.saveNotification(transactionInfo);
+		Notification notification = notificationService.saveNotification(transactionInfo);
 
-		List<String> guardianDeviceToken = user.getFamily().getUsers().stream()
-			.filter(familyUser -> familyGuardianRole.contains(familyUser.getRole()))
-			.map(User::getDeviceToken).toList();
-		fcmSender.sendApprovalNotification(guardianDeviceToken, notificationBody);
+		List<User> guardianList = user.getFamily().getUsers().stream()
+			.filter(familyUser -> familyGuardianRole.contains(familyUser.getRole())).toList();
+
+		List<NotificationResponseStatus> responseStatusList = guardianList.stream()
+			.map(guardian -> new NotificationResponseStatus(guardian, notification, ResponseStatus.NONE)).toList();
+		notificationResponseStatusRepository.saveAll(responseStatusList);
+
+		List<String> guardianDeviceToken = guardianList.stream().map(guardian -> guardian.getDeviceToken()).toList();
+		fcmSender.sendApprovalNotification(guardianDeviceToken, notification.getBody());
 	}
 
 	// TODO: 시간제한에 걸려 자동으로 요청 취소

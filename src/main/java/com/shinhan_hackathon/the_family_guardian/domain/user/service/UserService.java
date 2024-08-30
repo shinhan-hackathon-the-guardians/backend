@@ -20,14 +20,18 @@ import com.shinhan_hackathon.the_family_guardian.bank.dto.response.OpenAccountAu
 import com.shinhan_hackathon.the_family_guardian.bank.service.AccountAuthService;
 import com.shinhan_hackathon.the_family_guardian.bank.service.AccountService;
 import com.shinhan_hackathon.the_family_guardian.bank.util.BankUtil;
+import com.shinhan_hackathon.the_family_guardian.domain.approval.entity.AcceptStatus;
+import com.shinhan_hackathon.the_family_guardian.domain.approval.entity.Approval;
+import com.shinhan_hackathon.the_family_guardian.domain.approval.repository.ApprovalRepository;
+import com.shinhan_hackathon.the_family_guardian.domain.approval.service.ApprovalService;
+import com.shinhan_hackathon.the_family_guardian.domain.family.dto.FamilyInviteNotification;
+import com.shinhan_hackathon.the_family_guardian.domain.family.entity.Family;
 import com.shinhan_hackathon.the_family_guardian.domain.payment.entity.LimitPeriod;
 import com.shinhan_hackathon.the_family_guardian.domain.payment.entity.PaymentLimit;
 import com.shinhan_hackathon.the_family_guardian.domain.payment.repository.PaymentLimitRepository;
 import com.shinhan_hackathon.the_family_guardian.domain.payment.service.PaymentLimitService;
-import com.shinhan_hackathon.the_family_guardian.domain.user.dto.AccountAuthResponse;
-import com.shinhan_hackathon.the_family_guardian.domain.user.dto.SignupRequest;
-import com.shinhan_hackathon.the_family_guardian.domain.user.dto.UpdateDeviceTokenResponse;
-import com.shinhan_hackathon.the_family_guardian.domain.user.dto.UserInfoResponse;
+import com.shinhan_hackathon.the_family_guardian.domain.user.dto.*;
+import com.shinhan_hackathon.the_family_guardian.domain.user.entity.Role;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import com.shinhan_hackathon.the_family_guardian.domain.user.repository.UserRepository;
 import com.shinhan_hackathon.the_family_guardian.global.auth.dto.UserPrincipal;
@@ -46,16 +50,18 @@ public class UserService {
 	public static final int SINGLE_TRANSACTION_LIMIT_DEFAULT = 1_000_000;
 	public static final int MAX_LIMIT_AMOUNT_DEFAULT = 20_000_000;
 
-	private final UserRepository userRepository;
-	private final PaymentLimitService paymentLimitService;
-	private final AccountAuthService accountAuthService;
-	private final AccountService accountService;
-	private final RedisService redisService;
-	private final AuthUtil authUtil;
-	private final PaymentLimitRepository paymentLimitRepository;
+    private final UserRepository userRepository;
+    private final PaymentLimitService paymentLimitService;
+    private final AccountAuthService accountAuthService;
+    private final AccountService accountService;
+    private final RedisService redisService;
+    private final AuthUtil authUtil;
+    private final PaymentLimitRepository paymentLimitRepository;
+    private final ApprovalService approvalService;
+    private final ApprovalRepository approvalRepository;
 
-	@Transactional
-	public void createUser(SignupRequest signupRequest) {
+    @Transactional
+    public LoginResponse createUser(SignupRequest signupRequest) {
 
 		validateSignupRequest(signupRequest);
 		validateCsrfToken(signupRequest.accountNumber(), signupRequest.csrfToken());
@@ -63,16 +69,32 @@ public class UserService {
 		User user = userRepository.save(signupRequest.toUserEntity());
 		redisService.deleteValues(signupRequest.accountNumber());
 
-		PaymentLimit paymentLimit = new PaymentLimit(
-			user,
-			Timestamp.from(Instant.now()),
-			LimitPeriod.DAY30,
-			SINGLE_TRANSACTION_LIMIT_DEFAULT,
-			MAX_LIMIT_AMOUNT_DEFAULT,
-			0
-		);
-		paymentLimitRepository.save(paymentLimit);
-	}
+        PaymentLimit paymentLimit = new PaymentLimit(
+                user,
+                Timestamp.from(Instant.now()),
+                LimitPeriod.DAY30,
+                SINGLE_TRANSACTION_LIMIT_DEFAULT,
+                MAX_LIMIT_AMOUNT_DEFAULT,
+                0
+        );
+        paymentLimitRepository.save(paymentLimit);
+
+        Long familyId = null;
+        String familyName = null;
+        if (user.getFamily() != null) {
+            familyId = user.getFamily().getId();
+            familyName = user.getFamily().getName();
+        }
+
+        return new LoginResponse(
+                user.getId(),
+                user.getName(),
+                user.getLevel(),
+                user.getRole(),
+                familyId,
+                familyName
+        );
+    }
 
 	public AccountAuthResponse openAccountAuth(String accountNo) {
 		OpenAccountAuthResponse openAccountAuthResponse = accountAuthService.openAccountAuth(accountNo);
@@ -236,4 +258,30 @@ public class UserService {
 	// TODO: 각 User의 period 조회
 	// TODO: 현재 날짜와 비교 starDate + period <= today
 	// TODO: 정해진 period를 넘었으면, 초기화
+    public List<FamilyInviteNotification> findFamilyInviteRequest() {
+//        Long userId = Long.valueOf(authUtil.getUserPrincipal().getUsername());
+
+        User user = userRepository.getReferenceById(1L);
+        List<Approval> approvalList = approvalRepository.findAllByUser(user);
+
+        return approvalList.stream()
+                .filter(approval -> approval.getAccepted().equals(AcceptStatus.PROGRESS))
+                .map(approval -> {
+            Family family = approval.getFamily();
+            User familyOwner = userRepository.findByFamilyAndRole(family, Role.OWNER).orElseThrow(() -> new RuntimeException("가족이 없습니다."));
+            return new FamilyInviteNotification(
+                    family.getId(),
+                    family.getName(),
+                    family.getDescription(),
+                    familyOwner.getId(),
+                    familyOwner.getName()
+            );
+        }).toList();
+    }
+
+    // TODO: PaymentLimitList 조회
+    // TODO: 각 PaymentLimit의 User 조회
+    // TODO: 각 User의 period 조회
+    // TODO: 현재 날짜와 비교 starDate + period <= today
+    // TODO: 정해진 period를 넘었으면, 초기화
 }

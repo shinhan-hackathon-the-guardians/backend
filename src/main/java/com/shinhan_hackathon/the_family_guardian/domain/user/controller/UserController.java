@@ -1,13 +1,9 @@
 package com.shinhan_hackathon.the_family_guardian.domain.user.controller;
 
-import com.shinhan_hackathon.the_family_guardian.domain.user.dto.AccountAuthCheckRequest;
-import com.shinhan_hackathon.the_family_guardian.domain.user.dto.AccountAuthResponse;
-import com.shinhan_hackathon.the_family_guardian.domain.user.dto.AccountAuthSendRequest;
-import com.shinhan_hackathon.the_family_guardian.domain.user.dto.SignupRequest;
-import com.shinhan_hackathon.the_family_guardian.domain.user.dto.UpdateDeviceTokenRequest;
-import com.shinhan_hackathon.the_family_guardian.domain.user.dto.UpdateDeviceTokenResponse;
-import com.shinhan_hackathon.the_family_guardian.domain.user.dto.UserInfoResponse;
+import com.shinhan_hackathon.the_family_guardian.domain.family.dto.FamilyInviteNotification;
+import com.shinhan_hackathon.the_family_guardian.domain.user.dto.*;
 import com.shinhan_hackathon.the_family_guardian.domain.user.service.UserService;
+import com.shinhan_hackathon.the_family_guardian.global.auth.util.AuthUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +13,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.List;
+
 @Slf4j
 @Controller
 @RequestMapping("/user")
@@ -24,11 +22,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class UserController {
 
     private final UserService userService;
+    private final AuthUtil authUtil;
 
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@RequestBody SignupRequest signupRequest) {
-        userService.createUser(signupRequest);
-        return ResponseEntity.ok("회원가입 성공");
+    public ResponseEntity<LoginResponse> signup(@RequestBody SignupRequest signupRequest) {
+        LoginResponse signupResult = userService.createUser(signupRequest);
+        return ResponseEntity.ok(signupResult);
     }
 
     @PostMapping("/accountAuthCode")
@@ -64,5 +63,11 @@ public class UserController {
         UserInfoResponse userInfo = userService.getUserInfo();
 
         return ResponseEntity.ok(userInfo);
+    }
+
+    @GetMapping("/invite")
+    public ResponseEntity<List<FamilyInviteNotification>> getFamilyInviteRequest() {
+        List<FamilyInviteNotification> familyInviteList = userService.findFamilyInviteRequest();
+        return ResponseEntity.ok(familyInviteList);
     }
 }
