@@ -120,7 +120,7 @@ INSERT IGNORE INTO user (id, account_number, birth_date, gender, level, name, pa
 (6, '0886372305629122', '2009-11-22 00:00:00', 'FEMALE', 'SUPPORTER', '김리나', '5566', '010-5678-9012', '딸', 'MEMBER', 'kimrina@gmail.com', NULL);
 
 INSERT IGNORE INTO family (id, approval_requirement, name, description, total_manager_count, created_at) VALUES
-(1, 2, "미영이팸", "사랑하는 가족들", 3, now());
+(1, 2, "미영이팸", "사랑하는 가족들", 3, "2024-06-23 00:00:00");
 
 INSERT IGNORE INTO approval (family_id, id, user_id, accepted) VALUES
 (1, 1, 7, "ACCEPT"),
@@ -139,9 +139,9 @@ INSERT IGNORE INTO user (id, account_number, birth_date, gender, level, name, pa
 
 -- payment_limit
 INSERT IGNORE INTO payment_limit (id, amount_used, max_limit_amount, single_transaction_limit, start_date, user_id, period) VALUES
-(1, 183000, 300000, 100000, 2024-08-10, 10, "DAY15"), --아들 --15일한도:30만 -- 10만 단건 결제시 승인요청 --
-(2, 450000, 500000, 300000, 2024-08-13, 11, "DAY30"), --딸 --30일한도:50만 -- 30만 단건 결제시 승인요청 --
-(3, 200000, 2000000, 600000, 2024-08-10, 12, "DAY30"); --할아버지 --30일한도:200만 -- 60만 단건 결제시 승인요청 --
+(1, 183000, 300000, 100000, "2024-08-10 00:00:00", 10, "DAY15"), --아들 --15일한도:30만 -- 10만 단건 결제시 승인요청 --
+(2, 450000, 500000, 300000, "2024-08-13 00:00:00", 11, "DAY30"), --딸 --30일한도:50만 -- 30만 단건 결제시 승인요청 --
+(3, 200000, 2000000, 600000, "2024-08-10 00:00:00", 12, "DAY30"); --할아버지 --30일한도:200만 -- 60만 단건 결제시 승인요청 --
 
 
 -- transaction
