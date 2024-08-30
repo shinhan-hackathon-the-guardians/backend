@@ -119,8 +119,8 @@ INSERT IGNORE INTO user (id, account_number, birth_date, gender, level, name, pa
 (5, '0885141500369617', '2007-09-08 00:00:00', 'MALE', 'SUPPORTER', '김은우', '3344', '010-4567-8901', '아들', 'MEMBER', 'kimeunwoo@gmail.com', NULL),
 (6, '0886372305629122', '2009-11-22 00:00:00', 'FEMALE', 'SUPPORTER', '김리나', '5566', '010-5678-9012', '딸', 'MEMBER', 'kimrina@gmail.com', NULL);
 
-INSERT IGNORE INTO family (id, approval_requirement, name, description, total_manager_count) VALUES
-(1, 2, "미영이팸", "사랑하는 가족들", 3);
+INSERT IGNORE INTO family (id, approval_requirement, name, description, total_manager_count, created_at) VALUES
+(1, 2, "미영이팸", "사랑하는 가족들", 3, now());
 
 INSERT IGNORE INTO approval (family_id, id, user_id, accepted) VALUES
 (1, 1, 7, "ACCEPT"),
