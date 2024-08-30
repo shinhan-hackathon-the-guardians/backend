@@ -95,4 +95,8 @@ public class User {
     public String updateDeviceToken(String deviceToken) {
         return this.deviceToken = deviceToken;
     }
+
+	public String updateRelationship(String relationship) {
+		return this.relationship = relationship;
+	}
 }
