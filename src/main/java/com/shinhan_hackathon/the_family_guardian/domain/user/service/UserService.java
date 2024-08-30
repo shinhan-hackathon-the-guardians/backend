@@ -29,7 +29,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -58,7 +57,7 @@ public class UserService {
     private final ApprovalRepository approvalRepository;
 
     @Transactional
-    public SignupResponse createUser(SignupRequest signupRequest) {
+    public LoginResponse createUser(SignupRequest signupRequest) {
 
         validateSignupRequest(signupRequest);
         validateCsrfToken(signupRequest.accountNumber(), signupRequest.csrfToken());
@@ -83,7 +82,7 @@ public class UserService {
             familyName = user.getFamily().getName();
         }
 
-        return new SignupResponse(
+        return new LoginResponse(
                 user.getId(),
                 user.getName(),
                 user.getLevel(),
