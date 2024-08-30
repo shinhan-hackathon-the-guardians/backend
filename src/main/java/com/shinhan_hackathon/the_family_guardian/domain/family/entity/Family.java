@@ -34,16 +34,16 @@ public class Family {
     private Integer totalManagerCount; // TODO: Default로 Owner가 있으니까 1? default 0에서 그룹 생성할 때 owner 등록하면서 +1?
 
     @Column(nullable = false)
-    private LocalDate created_at;
+    private LocalDate createdAt;
 
     @Builder
-    public Family(String name, String description, int approvalRequirement, List<User> users, Integer totalManagerCount, LocalDate created_at) {
+    public Family(String name, String description, int approvalRequirement, List<User> users, Integer totalManagerCount, LocalDate createdAt) {
         this.name = name;
         this.description = description;
         this.approvalRequirement = approvalRequirement;
         this.users = users;
         this.totalManagerCount = totalManagerCount;
-        this.created_at = created_at;
+        this.createdAt = createdAt;
     }
 
     public int increaseTotalManagerCount() {
