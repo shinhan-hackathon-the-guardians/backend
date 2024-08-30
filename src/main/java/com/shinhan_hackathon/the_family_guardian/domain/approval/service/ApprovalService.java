@@ -28,7 +28,7 @@ public class ApprovalService {
     private final FamilyRepository familyRepository;
 
     @Transactional
-    public Long createApproval(Family family, User user) {
+    public Long createApproval(Family family, User user, String relationship) {
         Optional<Approval> optionalApproval = approvalRepository.findByUser(user);
         if (optionalApproval.isPresent()) {
             Approval approval = optionalApproval.get();
@@ -45,6 +45,7 @@ public class ApprovalService {
                 .family(family)
                 .user(user)
                 .accepted(AcceptStatus.PROGRESS)
+                .relationship(relationship)
                 .build();
 
         approval = approvalRepository.save(approval);
@@ -67,7 +68,7 @@ public class ApprovalService {
 
     @Transactional
     public ApprovalReplyResponse acceptApproval(Long approvalId, Boolean approvalStatus) {
-        Approval approval = approvalRepository.findById(approvalId).orElseThrow(() -> new RuntimeException());
+        Approval approval = approvalRepository.findById(approvalId).orElseThrow(() -> new RuntimeException("요청이 없습니다."));
         Long userId = Long.valueOf(authUtil.getUserPrincipal().getUsername());
         User user = userRepository.getReferenceById(userId);
 
@@ -94,6 +95,7 @@ public class ApprovalService {
             family.addUser(user);
             user.updateFamily(family);
             user.updateRole(Role.MEMBER);
+            user.updateRelationship(approval.getRelationship());
 
             authUtil.updateAuthentication(user);
         }
