@@ -79,7 +79,7 @@ public class FamilyService {
                 family.getName(),
                 family.getDescription(),
                 family.getApprovalRequirement(),
-                family.getCreatedAt()
+                family.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
         );
     }
 
