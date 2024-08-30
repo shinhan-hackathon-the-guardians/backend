@@ -41,8 +41,8 @@ public class FamilyController {
     }
 
     @GetMapping("/{family_id}/users")
-    public ResponseEntity<FamilyUserResponse> getFamilyUsers(@PathVariable(value = "family_id") Long familyId) {
-        FamilyUserResponse familyUsers = familyService.findFamilyUsers(familyId);
+    public ResponseEntity<FamilyAndUserResponse> getFamilyUsers(@PathVariable(value = "family_id") Long familyId) {
+        FamilyAndUserResponse familyUsers = familyService.findFamilyUsers(familyId);
         return ResponseEntity.ok(familyUsers);
     }
 
