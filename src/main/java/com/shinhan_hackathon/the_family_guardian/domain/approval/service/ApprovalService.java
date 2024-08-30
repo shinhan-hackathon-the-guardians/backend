@@ -28,7 +28,7 @@ public class ApprovalService {
     private final FamilyRepository familyRepository;
 
     @Transactional
-    public Long createApproval(Family family, User user) {
+    public Long createApproval(Family family, User user, String relationship) {
         Optional<Approval> optionalApproval = approvalRepository.findByUser(user);
         if (optionalApproval.isPresent()) {
             Approval approval = optionalApproval.get();
@@ -45,6 +45,7 @@ public class ApprovalService {
                 .family(family)
                 .user(user)
                 .accepted(AcceptStatus.PROGRESS)
+                .relationship(relationship)
                 .build();
 
         approval = approvalRepository.save(approval);

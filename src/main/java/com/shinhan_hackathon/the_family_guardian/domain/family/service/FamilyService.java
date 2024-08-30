@@ -159,7 +159,7 @@ public class FamilyService {
                 notificationBody
         );
 
-        Long approvalId = approvalService.createApproval(family, user);
+        Long approvalId = approvalService.createApproval(family, user, addFamilyMemberRequest.relationship());
         return new AddFamilyMemberResponse(
                 user.getId(),
                 user.getName(),
