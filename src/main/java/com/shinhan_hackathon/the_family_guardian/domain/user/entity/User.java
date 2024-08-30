@@ -10,12 +10,15 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.DynamicInsert;
 
 @Entity
 @Table(name = "User")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @ToString(exclude = {"password", "family"})
+@DynamicInsert
 public class User {
 
 	@Id
@@ -44,7 +47,8 @@ public class User {
 	@Column(unique = true, length = 20)
 	private String accountNumber;
 
-	@Column(length = 20, nullable = false, columnDefinition = "varchar(20) default 'supporter'")
+	@Column(length = 20, nullable = false)
+	@ColumnDefault("'SUPPORTER'")
 	@Enumerated(EnumType.STRING)
 	private Level level;
 
@@ -55,7 +59,8 @@ public class User {
 	@Column(length = 20)
 	private String relationship; // 가족 관계
 
-	@Column(length = 20, nullable = false, columnDefinition = "varchar(20) default 'member'")
+	@Column(length = 20, nullable = false)
+	@ColumnDefault("'NONE'")
 	@Enumerated(EnumType.STRING)
 	private Role role; // 패밀리 내부 권한: 'member' 또는 'guardian'
 
