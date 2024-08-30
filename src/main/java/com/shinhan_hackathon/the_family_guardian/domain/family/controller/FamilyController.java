@@ -58,11 +58,21 @@ public class FamilyController {
     public ResponseEntity<UpdateUserRoleResponse> updateFamilyUserRole(@PathVariable(value = "family_id") Long familyId, @RequestBody UpdateUserRoleRequest updateUserRoleRequest) {
         authUtil.checkAuthority(Role.OWNER);
         if (updateUserRoleRequest.newRole().equals(Role.NONE) ||
-        updateUserRoleRequest.newRole().equals(Role.OWNER)) {
+                updateUserRoleRequest.newRole().equals(Role.OWNER)) {
             throw new IllegalArgumentException("변경할 수 없는 가족 역할입니다.");
         }
 
         UpdateUserRoleResponse updateUserRoleResponse = familyService.manageFamilyUserRole(familyId, updateUserRoleRequest.targetUserId(), updateUserRoleRequest.newRole());
         return ResponseEntity.ok(updateUserRoleResponse);
+    }
+
+    @GetMapping("/{family_id}/userRole/{user_id}")
+    public ResponseEntity getUserRole(
+            @PathVariable(value = "family_id") Long familyId,
+            @PathVariable(value = "user_id") Long userId
+    ) {
+        authUtil.checkAuthority(Role.OWNER, Role.MANAGER);
+        FamilyUserRoleResponse familyUserRoleResponse = familyService.findFamilyUserRole(familyId, userId);
+
     }
 }

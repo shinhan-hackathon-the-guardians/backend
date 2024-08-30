@@ -227,4 +227,19 @@ public class FamilyService {
         );
 
     }
+
+    public FamilyUserRoleResponse findFamilyUserRole(Long familyId, Long userId) {
+        Family guardianFamily = authUtil.getUserPrincipal().getFamily();
+        User user = userRepository.getReferenceById(userId);
+        Family userFamily = user.getFamily();
+
+        if (!guardianFamily.getId().equals(userFamily.getId())) {
+            throw new RuntimeException("같은 가족에 속한 유저가 아닙니다.");
+        }
+
+        return new FamilyUserRoleResponse(
+                userId,
+                user.getRole()
+        );
+    }
 }
