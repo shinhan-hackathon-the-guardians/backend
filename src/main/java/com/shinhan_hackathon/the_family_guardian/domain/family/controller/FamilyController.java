@@ -67,12 +67,12 @@ public class FamilyController {
     }
 
     @GetMapping("/{family_id}/userRole/{user_id}")
-    public ResponseEntity getUserRole(
+    public ResponseEntity<FamilyUserRoleResponse> getUserRole(
             @PathVariable(value = "family_id") Long familyId,
             @PathVariable(value = "user_id") Long userId
     ) {
         authUtil.checkAuthority(Role.OWNER, Role.MANAGER);
         FamilyUserRoleResponse familyUserRoleResponse = familyService.findFamilyUserRole(familyId, userId);
-
+        return ResponseEntity.ok(familyUserRoleResponse);
     }
 }
