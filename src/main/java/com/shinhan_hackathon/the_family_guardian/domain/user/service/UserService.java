@@ -282,7 +282,11 @@ public class UserService {
         }).toList();
     }
 
-    // TODO: PaymentLimitList 조회
+	public Boolean checkUsernameExists(String username) {
+		return userRepository.existsByUsername(username);
+	}
+
+	// TODO: PaymentLimitList 조회
     // TODO: 각 PaymentLimit의 User 조회
     // TODO: 각 User의 period 조회
     // TODO: 현재 날짜와 비교 starDate + period <= today
