@@ -4,7 +4,6 @@ public record UpdateFamilyResponse(
         Long id,
         String name,
         String description,
-        Integer approvalRequirement,
-        Boolean notificationStatus
+        Integer approvalRequirement
 ) {
 }

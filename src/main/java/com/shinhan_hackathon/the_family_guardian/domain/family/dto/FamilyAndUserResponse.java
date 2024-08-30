@@ -5,7 +5,10 @@ import com.shinhan_hackathon.the_family_guardian.domain.user.entity.Role;
 
 import java.util.List;
 
-public record FamilyUserResponse(
+public record FamilyAndUserResponse(
+        String name,
+        String description,
+        Integer approvalRequest,
         List<FamilyUser> userList
 ) {
 

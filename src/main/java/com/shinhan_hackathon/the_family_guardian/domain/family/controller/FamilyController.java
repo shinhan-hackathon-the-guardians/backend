@@ -41,8 +41,8 @@ public class FamilyController {
     }
 
     @GetMapping("/{family_id}/users")
-    public ResponseEntity<FamilyUserResponse> getFamilyUsers(@PathVariable(value = "family_id") Long familyId) {
-        FamilyUserResponse familyUsers = familyService.findFamilyUsers(familyId);
+    public ResponseEntity<FamilyAndUserResponse> getFamilyUsers(@PathVariable(value = "family_id") Long familyId) {
+        FamilyAndUserResponse familyUsers = familyService.findFamilyUsers(familyId);
         return ResponseEntity.ok(familyUsers);
     }
 
@@ -55,7 +55,7 @@ public class FamilyController {
     }
 
     @PostMapping("/{family_id}/userRole")
-    public ResponseEntity updateFamilyUserRole(@PathVariable(value = "family_id") Long familyId, @RequestBody UpdateUserRoleRequest updateUserRoleRequest) {
+    public ResponseEntity<UpdateUserRoleResponse> updateFamilyUserRole(@PathVariable(value = "family_id") Long familyId, @RequestBody UpdateUserRoleRequest updateUserRoleRequest) {
         authUtil.checkAuthority(Role.OWNER);
         if (updateUserRoleRequest.newRole().equals(Role.NONE) ||
         updateUserRoleRequest.newRole().equals(Role.OWNER)) {

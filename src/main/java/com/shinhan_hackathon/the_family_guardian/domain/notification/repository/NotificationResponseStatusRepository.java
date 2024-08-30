@@ -12,5 +12,5 @@ import java.util.Optional;
 public interface NotificationResponseStatusRepository extends JpaRepository<NotificationResponseStatus, Long> {
     Optional<NotificationResponseStatus> findByGuardianAndNotification(User guardian, Notification notification);
 
-    List<NotificationResponseStatus> findAllByGuardianAndResponseStatus(User guardian, ResponseStatus responseStatus);
+    List<NotificationResponseStatus> findAllByGuardianAndResponseStatusOrderById(User guardian, ResponseStatus responseStatus);
 }

@@ -121,14 +121,12 @@ public class FamilyService {
         if (!family.getApprovalRequirement().equals(updateFamilyRequest.approvalRequirement())) {
             family.updateApprovalRequirement(updateFamilyRequest.approvalRequirement());
         }
-        // TODO notification 상태변경
 
         return new UpdateFamilyResponse(
                 family.getId(),
                 family.getName(),
                 family.getDescription(),
-                family.getApprovalRequirement(),
-                updateFamilyRequest.notificationStatus()
+                family.getApprovalRequirement()
         );
     }
 
@@ -208,11 +206,11 @@ public class FamilyService {
     }
 
 
-    public FamilyUserResponse findFamilyUsers(Long familyId) {
+    public FamilyAndUserResponse findFamilyUsers(Long familyId) {
         isValidFamilyUser(familyId);
 
         Family family = getFamilyFromDatabase(familyId);
-        List<FamilyUserResponse.FamilyUser> familyUserList = family.getUsers().stream().map(user -> new FamilyUserResponse.FamilyUser(
+        List<FamilyAndUserResponse.FamilyUser> familyUserList = family.getUsers().stream().map(user -> new FamilyAndUserResponse.FamilyUser(
                 user.getId(),
                 user.getName(),
                 user.getBirthDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
@@ -221,7 +219,12 @@ public class FamilyService {
                 user.getRelationship()
         )).toList();
 
-        return new FamilyUserResponse(familyUserList);
+        return new FamilyAndUserResponse(
+                family.getName(),
+                family.getDescription(),
+                family.getApprovalRequirement(),
+                familyUserList
+        );
 
     }
 }

@@ -1,11 +1,10 @@
 package com.shinhan_hackathon.the_family_guardian.domain.notification.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shinhan_hackathon.the_family_guardian.domain.family.entity.Family;
 import com.shinhan_hackathon.the_family_guardian.domain.family.service.FamilyService;
-import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.NotificationHistory;
-import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.NotificationReplyResponse;
-import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.PendingNotification;
-import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.PendingNotificationResponse;
+import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.*;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.entity.Notification;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.entity.NotificationResponseStatus;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.entity.ResponseStatus;
@@ -21,6 +20,7 @@ import com.shinhan_hackathon.the_family_guardian.domain.user.repository.UserRepo
 import com.shinhan_hackathon.the_family_guardian.global.auth.util.AuthUtil;
 import com.shinhan_hackathon.the_family_guardian.global.event.EventPublisher;
 
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import lombok.RequiredArgsConstructor;
@@ -40,6 +40,7 @@ public class NotificationService {
     private final UserRepository userRepository;
     private final NotificationResponseStatusRepository notificationResponseStatusRepository;
     private final AuthUtil authUtil;
+    private final ObjectMapper jacksonObjectMapper;
 
     @Transactional
     public Notification saveNotification(TransactionInfo transactionInfo) {
@@ -105,56 +106,29 @@ public class NotificationService {
         );
     }
 
-    public PendingNotificationResponse findUnansweredNotification() {
+    public List<UnansweredNotification> findAllUnansweredNotification() {
         User guardian = authUtil.getUserPrincipal().user();
-        List<NotificationResponseStatus> responseStatusList = notificationResponseStatusRepository.findAllByGuardianAndResponseStatus(guardian, ResponseStatus.NONE);
-        Map<Long, List<Notification>> unansweredNotificationMap = new HashMap<>();
+        List<NotificationResponseStatus> responseStatusList = notificationResponseStatusRepository.findAllByGuardianAndResponseStatusOrderById(guardian, ResponseStatus.NONE);
 
-        for (NotificationResponseStatus responseStatus : responseStatusList) {
-            Notification notification = responseStatus.getNotification();
-            User user = notification.getUser();
-            List<Notification> notifications = unansweredNotificationMap.putIfAbsent(user.getId(), new ArrayList<>(List.of(notification)));
-            if (notifications != null) {
-                notifications.add(notification);
-            }
-        }
-
-        List<PendingNotification> pendingNotifications = new ArrayList<>();
-        for (Map.Entry<Long, List<Notification>> notificationList : unansweredNotificationMap.entrySet()) {
-            Long userId = notificationList.getKey();
-            List<Notification> notifications = notificationList.getValue();
-
-            Optional<User> optionalUser = userRepository.findById(userId);
-            if (optionalUser.isPresent()) {
-                User user = optionalUser.get();
-                pendingNotifications.add(new PendingNotification(user.getId(), user.getName(), notifications.size()));
-            }
-        }
-
-        return new PendingNotificationResponse(pendingNotifications);
-    }
-
-    @Deprecated
-    public PendingNotificationResponse getPendingNotification(Long groupId) {
-        Family family = familyService.findByGroupId(groupId);
-        List<PendingNotification> list = new ArrayList<>();
-
-        for(User user : family.getUsers()){
-            List<Notification> notificationList = notificationRepository.findByUserId(user.getId());
-            int notificationCount = 0;
-            for(Notification notification : notificationList) {
-                Transaction transaction = notification.getTransaction();
-                if(transaction.getStatus().equals(TransactionStatus.PENDING)) {
-                    notificationCount++;
-                }
-            }
-
-            if (notificationCount > 0) {
-                list.add(new PendingNotification(user.getId(), user.getName(), notificationCount));
-            }
-        }
-        PendingNotificationResponse response = new PendingNotificationResponse(list);
-        return response;
+        return responseStatusList.stream()
+                .filter(response -> response.getNotification().getTransaction().getStatus().equals(TransactionStatus.PENDING))
+                .map(response -> {
+                    Notification notification = response.getNotification();
+                    try {
+                        NotificationBody notificationBody = jacksonObjectMapper.readValue(notification.getBody(), NotificationBody.class);
+                        return new UnansweredNotification(
+                                notification.getId(),
+                                notification.getUser().getName(),
+                                notification.getTransaction().getTimestamp().toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss")),
+                                notificationBody.transactionBalance(),
+                                notificationBody.transactionType(),
+                                notificationBody.senderAccountNumber()
+                        );
+                    } catch (JsonProcessingException e) {
+                        log.error(e.getMessage());
+                        return null;
+                    }
+                }).toList();
     }
 
     public List<NotificationHistory> findNotificationByUserId(Long userId) {

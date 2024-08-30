@@ -1,9 +1,6 @@
 package com.shinhan_hackathon.the_family_guardian.domain.notification.controller;
 
-import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.NotificationHistory;
-import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.NotificationReplyRequest;
-import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.NotificationReplyResponse;
-import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.PendingNotificationResponse;
+import com.shinhan_hackathon.the_family_guardian.domain.notification.dto.*;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.service.NotificationService;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.NotificationBody;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.Role;
@@ -32,10 +29,10 @@ public class NotificationController {
     }
 
     @GetMapping("/unanswered")
-    public ResponseEntity<PendingNotificationResponse> getPendingNotification() {
+    public ResponseEntity<List<UnansweredNotification>> getPendingNotification() {
         authUtil.checkAuthority(Role.MANAGER, Role.OWNER);
-        PendingNotificationResponse pendingNotification = notificationService.findUnansweredNotification();
-        return ResponseEntity.ok(pendingNotification);
+        List<UnansweredNotification> allUnansweredNotification = notificationService.findAllUnansweredNotification();
+        return ResponseEntity.ok(allUnansweredNotification);
     }
 
     @GetMapping("/user/{user_id}")
