@@ -73,4 +73,10 @@ public class UserController {
         List<FamilyInviteNotification> familyInviteList = userService.findFamilyInviteRequest();
         return ResponseEntity.ok(familyInviteList);
     }
+
+    @PostMapping("/username/check")
+    public ResponseEntity<Boolean> checkUsernameExists(@RequestBody UsernameCheckRequest usernameCheckRequest) {
+        Boolean usernameExists = userService.checkUsernameExists(usernameCheckRequest.username());
+        return ResponseEntity.ok(usernameExists);
+    }
 }
