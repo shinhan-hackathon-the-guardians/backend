@@ -68,7 +68,7 @@ public class ApprovalService {
 
     @Transactional
     public ApprovalReplyResponse acceptApproval(Long approvalId, Boolean approvalStatus) {
-        Approval approval = approvalRepository.findById(approvalId).orElseThrow(() -> new RuntimeException());
+        Approval approval = approvalRepository.findById(approvalId).orElseThrow(() -> new RuntimeException("요청이 없습니다."));
         Long userId = Long.valueOf(authUtil.getUserPrincipal().getUsername());
         User user = userRepository.getReferenceById(userId);
 
@@ -95,6 +95,7 @@ public class ApprovalService {
             family.addUser(user);
             user.updateFamily(family);
             user.updateRole(Role.MEMBER);
+            user.updateRelationship(approval.getRelationship());
 
             authUtil.updateAuthentication(user);
         }
