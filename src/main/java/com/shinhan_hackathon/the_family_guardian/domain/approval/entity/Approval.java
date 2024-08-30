@@ -32,11 +32,14 @@ public class Approval { // 패밀리 가입 요청
     @Enumerated(EnumType.STRING)
     private AcceptStatus accepted;
 
+    private String relationship;
+
     @Builder
-    public Approval(Family family, User user, AcceptStatus accepted) {
+    public Approval(Family family, User user, AcceptStatus accepted, String relationship) {
         this.family = family;
         this.user = user;
         this.accepted = accepted;
+        this.relationship = relationship;
     }
 
     public AcceptStatus updateAccepted(AcceptStatus acceptStatus) {
