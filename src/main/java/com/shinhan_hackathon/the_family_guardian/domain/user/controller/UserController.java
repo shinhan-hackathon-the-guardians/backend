@@ -34,7 +34,10 @@ public class UserController {
     public ResponseEntity<AccountAuthResponse> sendAccountAuthCode(
             @RequestBody AccountAuthSendRequest accountAuthSendRequest) {
 
-        AccountAuthResponse accountAuthResponse = userService.openAccountAuth(accountAuthSendRequest.accountNumber());
+        AccountAuthResponse accountAuthResponse = userService.openAccountAuth(
+                accountAuthSendRequest.accountNumber(),
+                accountAuthSendRequest.deviceToken()
+        );
         return ResponseEntity.ok(accountAuthResponse);
     }
 

@@ -36,6 +36,7 @@ import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import com.shinhan_hackathon.the_family_guardian.domain.user.repository.UserRepository;
 import com.shinhan_hackathon.the_family_guardian.global.auth.dto.UserPrincipal;
 import com.shinhan_hackathon.the_family_guardian.global.auth.util.AuthUtil;
+import com.shinhan_hackathon.the_family_guardian.global.fcm.FcmSender;
 import com.shinhan_hackathon.the_family_guardian.global.redis.service.RedisService;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -59,6 +60,7 @@ public class UserService {
     private final PaymentLimitRepository paymentLimitRepository;
     private final ApprovalService approvalService;
     private final ApprovalRepository approvalRepository;
+    private final FcmSender fcmSender;
 
     @Transactional
     public LoginResponse createUser(SignupRequest signupRequest) {
@@ -79,70 +81,71 @@ public class UserService {
         );
         paymentLimitRepository.save(paymentLimit);
 
-        Long familyId = null;
-        String familyName = null;
-        if (user.getFamily() != null) {
-            familyId = user.getFamily().getId();
-            familyName = user.getFamily().getName();
-        }
+		Long familyId = null;
+		String familyName = null;
+		if (user.getFamily() != null) {
+			familyId = user.getFamily().getId();
+			familyName = user.getFamily().getName();
+		}
 
-        return new LoginResponse(
-                user.getId(),
-                user.getName(),
-                user.getLevel(),
-                user.getRole(),
-                familyId,
-                familyName
-        );
+		return new LoginResponse(
+				user.getId(),
+				user.getName(),
+				user.getLevel(),
+				user.getRole(),
+				familyId,
+				familyName
+		);
+	}
+
+    public AccountAuthResponse openAccountAuth(String accountNo, String deviceToken) {
+        OpenAccountAuthResponse openAccountAuthResponse = accountAuthService.openAccountAuth(accountNo);
+
+        BankUtil.validateBankApiResponse(openAccountAuthResponse.header());
+
+        String csrfToken = UUID.randomUUID().toString();
+        LocalDateTime expireTime = LocalDateTime.now().plusMinutes(5);
+        redisService.setValues(accountNo, csrfToken, expireTime);
+
+        log.info("accountNo:{} csrf:{} txNo:{}", accountNo, csrfToken,
+                openAccountAuthResponse.rec().transactionUniqueNo());
+
+        String accountAuthCode = getAccountAuthCode(accountNo, openAccountAuthResponse);
+        log.info("[NOTIFICATION] account auth code: {}", accountAuthCode);
+        fcmSender.sendMessage(deviceToken, "인증", accountAuthCode+","+"신한 "+accountNo+",1");
+
+        return new AccountAuthResponse(openAccountAuthResponse.rec().accountNo(), csrfToken);
     }
 
-	public AccountAuthResponse openAccountAuth(String accountNo) {
-		OpenAccountAuthResponse openAccountAuthResponse = accountAuthService.openAccountAuth(accountNo);
+    private String getAccountAuthCode(String accountNo, OpenAccountAuthResponse openAccountAuthResponse) {
+        AccountTransactionHistoryResponse accountTransactionHistoryResponse = accountService.inquireTransactionHistory(
+                accountNo, openAccountAuthResponse.rec().transactionUniqueNo());
+        String transactionSummary = accountTransactionHistoryResponse.getRec().getTransactionSummary();
+        return transactionSummary;
+    }
 
-		BankUtil.validateBankApiResponse(openAccountAuthResponse.header());
+    public AccountAuthResponse checkAccountAuth(String accountNo, String authCode, String csrfToken) {
+        String storedCsrfToken = validateCsrfToken(accountNo, csrfToken);
 
-		String csrfToken = UUID.randomUUID().toString();
-		LocalDateTime expireTime = LocalDateTime.now().plusMinutes(5);
-		redisService.setValues(accountNo, csrfToken, expireTime);
+        CheckAuthCodeResponse checkAuthCodeResponse = accountAuthService.checkAuthCode(accountNo, authCode);
+        BankUtil.validateBankApiResponse(checkAuthCodeResponse.header());
 
-		log.info("accountNo:{} csrf:{} txNo:{}", accountNo, csrfToken,
-			openAccountAuthResponse.rec().transactionUniqueNo());
+        csrfToken = storedCsrfToken + UUID.randomUUID();
+        LocalDateTime expireTime = LocalDateTime.now().plusMinutes(5);
+        redisService.setValues(accountNo, csrfToken, expireTime);
 
-		String accountAuthCode = getAccountAuthCode(accountNo, openAccountAuthResponse);
-		log.info("[NOTIFICATION] account auth code: {}", accountAuthCode);
+        log.info("1원송금 인증 성공");
+        return new AccountAuthResponse(checkAuthCodeResponse.rec().accountNo(), csrfToken);
+    }
 
-		return new AccountAuthResponse(openAccountAuthResponse.rec().accountNo(), csrfToken, accountAuthCode);
-	}
+    private String validateCsrfToken(String accountNumber, String csrfToken) {
+        String storedCsrfToken = redisService.getValues(accountNumber)
+                .orElseThrow(() -> new RuntimeException("1원 인증내역이 없습니다."));
 
-	private String getAccountAuthCode(String accountNo, OpenAccountAuthResponse openAccountAuthResponse) {
-		AccountTransactionHistoryResponse accountTransactionHistoryResponse = accountService.inquireTransactionHistory(
-			accountNo, openAccountAuthResponse.rec().transactionUniqueNo());
-		String transactionSummary = accountTransactionHistoryResponse.getRec().getTransactionSummary();
-		return transactionSummary.split(" ")[1];
-	}
-
-	public AccountAuthResponse checkAccountAuth(String accountNo, String authCode, String csrfToken) {
-		String storedCsrfToken = validateCsrfToken(accountNo, csrfToken);
-
-		CheckAuthCodeResponse checkAuthCodeResponse = accountAuthService.checkAuthCode(accountNo, authCode);
-		BankUtil.validateBankApiResponse(checkAuthCodeResponse.header());
-
-		csrfToken = storedCsrfToken + UUID.randomUUID();
-		LocalDateTime expireTime = LocalDateTime.now().plusMinutes(5);
-		redisService.setValues(accountNo, csrfToken, expireTime);
-
-		log.info("1원송금 인증 성공");
-		return new AccountAuthResponse(checkAuthCodeResponse.rec().accountNo(), csrfToken, authCode);
-	}
-
-	private String validateCsrfToken(String accountNumber, String csrfToken) {
-		String storedCsrfToken = redisService.getValues(accountNumber)
-			.orElseThrow(() -> new RuntimeException("1원 인증내역이 없습니다."));
-
-		if (!storedCsrfToken.equals(csrfToken)) {
-			redisService.deleteValues(accountNumber);
-			throw new RuntimeException("csrf 토큰이 일치하지 않습니다.");
-		}
+        if (!storedCsrfToken.equals(csrfToken)) {
+            redisService.deleteValues(accountNumber);
+            throw new RuntimeException("csrf 토큰이 일치하지 않습니다.");
+        }
 
 		return storedCsrfToken;
 	}
