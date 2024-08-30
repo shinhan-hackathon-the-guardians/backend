@@ -20,7 +20,7 @@ public class FamilyController {
 
     @GetMapping("/{family_id}")
     public ResponseEntity<FamilyInfoResponse> getFamilyInfoById(@PathVariable(value = "family_id") Long familyId) {
-        FamilyInfoResponse familyInfo = familyService.getFamilyInfo(familyId);
+        FamilyInfoResponse familyInfo = familyService.findFamilyInfo(familyId);
         return ResponseEntity.ok(familyInfo);
     }
 

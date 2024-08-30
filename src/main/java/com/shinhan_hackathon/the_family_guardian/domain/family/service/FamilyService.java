@@ -21,10 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
@@ -72,7 +70,19 @@ public class FamilyService {
         );
     }
 
-    public FamilyInfoResponse getFamilyInfo(Long familyId) {
+    public FamilyInfoResponse findFamilyInfo(Long familyId) {
+        isValidFamilyUser(familyId);
+
+        Family family = getFamilyFromDatabase(familyId);
+        return new FamilyInfoResponse(
+                family.getName(),
+                family.getDescription(),
+                family.getApprovalRequirement(),
+                family.getCreatedAt()
+        );
+    }
+
+    private void isValidFamilyUser(Long familyId) {
         UserPrincipal userPrincipal = authUtil.getUserPrincipal();
         Family userFamily = userPrincipal.getFamily();
 
@@ -84,15 +94,8 @@ public class FamilyService {
         if (!userFamilyId.equals(familyId)) {
             throw new AccessDeniedException("소속된 가족이 아닙니다..");
         }
-
-        Family family = getFamilyFromDatabase(familyId);
-        return new FamilyInfoResponse(
-                family.getName(),
-                family.getDescription(),
-                family.getApprovalRequirement(),
-                family.getCreatedAt()
-        );
     }
+
     private Family getFamilyFromDatabase(Long familyId) {
         return familyRepository.findById(familyId).orElseThrow(() -> new RuntimeException("가족이 존재하지 않습니다."));
     }
@@ -106,8 +109,7 @@ public class FamilyService {
             throw new AccessDeniedException("소속된 가족이 아닙니다.");
         }
 
-        Family family = familyRepository.findById(familyId)
-                .orElseThrow(() -> new RuntimeException("소속된 가족이 없습니다."));
+        Family family = getFamilyFromDatabase(familyId);
 
         if (!family.getName().equals(updateFamilyRequest.name())) {
             family.updateName(updateFamilyRequest.name());
