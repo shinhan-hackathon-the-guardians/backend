@@ -121,14 +121,12 @@ public class FamilyService {
         if (!family.getApprovalRequirement().equals(updateFamilyRequest.approvalRequirement())) {
             family.updateApprovalRequirement(updateFamilyRequest.approvalRequirement());
         }
-        // TODO notification 상태변경
 
         return new UpdateFamilyResponse(
                 family.getId(),
                 family.getName(),
                 family.getDescription(),
-                family.getApprovalRequirement(),
-                updateFamilyRequest.notificationStatus()
+                family.getApprovalRequirement()
         );
     }
 

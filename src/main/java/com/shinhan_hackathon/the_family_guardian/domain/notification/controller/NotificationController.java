@@ -37,6 +37,12 @@ public class NotificationController {
         PendingNotificationResponse pendingNotification = notificationService.findUnansweredNotification();
         return ResponseEntity.ok(pendingNotification);
     }
+//    @GetMapping("/unanswered")
+//    public ResponseEntity<PendingNotificationResponse> getPendingNotification() {
+//        authUtil.checkAuthority(Role.MANAGER, Role.OWNER);
+//        PendingNotificationResponse pendingNotification = notificationService.findUnansweredNotification();
+//        return ResponseEntity.ok(pendingNotification);
+//    }
 
     @GetMapping("/user/{user_id}")
     public ResponseEntity<List<NotificationHistory>> getUserNotification(@PathVariable(value = "user_id") Long userId) {

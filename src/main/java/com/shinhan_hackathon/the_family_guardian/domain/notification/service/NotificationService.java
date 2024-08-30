@@ -105,6 +105,36 @@ public class NotificationService {
         );
     }
 
+    public PendingNotificationResponse findAllUnansweredNotification() {
+        User guardian = authUtil.getUserPrincipal().user();
+        List<NotificationResponseStatus> responseStatusList = notificationResponseStatusRepository.findAllByGuardianAndResponseStatus(guardian, ResponseStatus.NONE);
+        Map<Long, List<Notification>> unansweredNotificationMap = new HashMap<>();
+
+        for (NotificationResponseStatus responseStatus : responseStatusList) {
+            Notification notification = responseStatus.getNotification();
+            User user = notification.getUser();
+            List<Notification> notifications = unansweredNotificationMap.putIfAbsent(user.getId(), new ArrayList<>(List.of(notification)));
+            if (notifications != null) {
+                notifications.add(notification);
+            }
+        }
+
+        List<PendingNotification> pendingNotifications = new ArrayList<>();
+        for (Map.Entry<Long, List<Notification>> notificationList : unansweredNotificationMap.entrySet()) {
+            Long userId = notificationList.getKey();
+            List<Notification> notifications = notificationList.getValue();
+
+            Optional<User> optionalUser = userRepository.findById(userId);
+            if (optionalUser.isPresent()) {
+                User user = optionalUser.get();
+                pendingNotifications.add(new PendingNotification(user.getId(), user.getName(), notifications.size()));
+            }
+        }
+
+        return new PendingNotificationResponse(pendingNotifications);
+    }
+
+    @Deprecated
     public PendingNotificationResponse findUnansweredNotification() {
         User guardian = authUtil.getUserPrincipal().user();
         List<NotificationResponseStatus> responseStatusList = notificationResponseStatusRepository.findAllByGuardianAndResponseStatus(guardian, ResponseStatus.NONE);
