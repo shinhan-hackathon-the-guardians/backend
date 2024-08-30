@@ -16,10 +16,7 @@ import com.shinhan_hackathon.the_family_guardian.domain.payment.entity.LimitPeri
 import com.shinhan_hackathon.the_family_guardian.domain.payment.entity.PaymentLimit;
 import com.shinhan_hackathon.the_family_guardian.domain.payment.repository.PaymentLimitRepository;
 import com.shinhan_hackathon.the_family_guardian.domain.payment.service.PaymentLimitService;
-import com.shinhan_hackathon.the_family_guardian.domain.user.dto.AccountAuthResponse;
-import com.shinhan_hackathon.the_family_guardian.domain.user.dto.SignupRequest;
-import com.shinhan_hackathon.the_family_guardian.domain.user.dto.UpdateDeviceTokenResponse;
-import com.shinhan_hackathon.the_family_guardian.domain.user.dto.UserInfoResponse;
+import com.shinhan_hackathon.the_family_guardian.domain.user.dto.*;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.Role;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
 import com.shinhan_hackathon.the_family_guardian.domain.user.repository.UserRepository;
@@ -61,7 +58,7 @@ public class UserService {
     private final ApprovalRepository approvalRepository;
 
     @Transactional
-    public void createUser(SignupRequest signupRequest) {
+    public SignupResponse createUser(SignupRequest signupRequest) {
 
         validateSignupRequest(signupRequest);
         validateCsrfToken(signupRequest.accountNumber(), signupRequest.csrfToken());
@@ -78,6 +75,15 @@ public class UserService {
                 0
         );
         paymentLimitRepository.save(paymentLimit);
+
+        return new SignupResponse(
+                user.getId(),
+                user.getName(),
+                user.getLevel(),
+                user.getRole(),
+                user.getFamily().getId(),
+                user.getFamily().getName()
+        );
     }
 
     public AccountAuthResponse openAccountAuth(String accountNo) {
