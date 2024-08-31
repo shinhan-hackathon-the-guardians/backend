@@ -72,7 +72,8 @@ public class BankAccountTest {
     @Test
     @DisplayName("7_계좌_잔액_조회")
     void inquireAccountBalance() {
-        log.info("{}", accountService.inquireAccountBalance());
+        String accountNo = "0885135436359049";
+        log.info("{}", accountService.inquireAccountBalance(accountNo));
     }
 
     @Test

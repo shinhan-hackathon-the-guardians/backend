@@ -128,9 +128,9 @@ public class AccountService {
     }
 
     // TODO: 2.4.7 계좌 잔액 조회
-    public AccountBalanceResponse inquireAccountBalance() {
+    public AccountBalanceResponse inquireAccountBalance(String accountNo) {
         String apiName = "inquireDemandDepositAccountBalance";
-        String accountNo = "0885135436359049";
+//        String accountNo = "0885135436359049";
         AccountBalanceRequest accountRequest = AccountBalanceRequest.builder()
                 .header(bankUtil.createHeader(apiName))
                 .accountNo(accountNo)
