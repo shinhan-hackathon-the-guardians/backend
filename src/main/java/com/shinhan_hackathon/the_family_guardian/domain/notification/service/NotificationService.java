@@ -58,7 +58,7 @@ public class NotificationService {
                     .build();
 
             NotificationBody notificationBody = new NotificationBody(
-                    transactionInfo.transaction().getId(),
+                    notification.getId(),
                     transactionInfo.transaction().getTransactionType(),
                     transactionInfo.user().getAccountNumber(),
                     transactionInfo.transaction().getReceiver(),
