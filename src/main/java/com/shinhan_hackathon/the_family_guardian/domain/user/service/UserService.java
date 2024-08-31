@@ -5,9 +5,12 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -61,8 +64,9 @@ public class UserService {
     private final ApprovalService approvalService;
     private final ApprovalRepository approvalRepository;
     private final FcmSender fcmSender;
+	private final ObjectMapper jacksonObjectMapper;
 
-    @Transactional
+	@Transactional
     public LoginResponse createUser(SignupRequest signupRequest) {
 
 		validateSignupRequest(signupRequest);
@@ -112,9 +116,20 @@ public class UserService {
 
         String accountAuthCode = getAccountAuthCode(accountNo, openAccountAuthResponse);
         log.info("[NOTIFICATION] account auth code: {}", accountAuthCode);
-        fcmSender.sendMessage(deviceToken, "인증", accountAuthCode+","+"신한 "+accountNo+",1");
+		HashMap<String, String> map = new HashMap<>();
+		map.put("auth_code", accountAuthCode);
+		map.put("bank", "신한");
+		map.put("account_no", accountNo);
+		map.put("transaction_balance", "1");
+        try {
+			String bodyStr = jacksonObjectMapper.writeValueAsString(map);
+			fcmSender.sendMessage(deviceToken, "인증", bodyStr);
 
-        return new AccountAuthResponse(openAccountAuthResponse.rec().accountNo(), csrfToken);
+			return new AccountAuthResponse(openAccountAuthResponse.rec().accountNo(), csrfToken);
+		} catch (JsonProcessingException e) {
+			log.info("1원송금 fcm body 변환 실패");
+			throw new RuntimeException(e);
+		}
     }
 
     private String getAccountAuthCode(String accountNo, OpenAccountAuthResponse openAccountAuthResponse) {
