@@ -9,4 +9,11 @@ public record NotificationBody(
         String receiver,
         Long transactionBalance
 ) {
+    public NotificationBody(Long notificationId, TransactionType transactionType, String senderAccountNumber, String receiver, Long transactionBalance) {
+        this.notificationId = notificationId;
+        this.transactionType = transactionType;
+        this.senderAccountNumber = senderAccountNumber;
+        this.receiver = receiver;
+        this.transactionBalance = transactionBalance;
+    }
 }
