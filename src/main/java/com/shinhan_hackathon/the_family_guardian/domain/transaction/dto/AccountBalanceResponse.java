@@ -4,6 +4,7 @@ import lombok.Builder;
 
 @Builder
 public record AccountBalanceResponse(
+	String name,
 	String accountNumber,
 	String transactionBalance
 ) {

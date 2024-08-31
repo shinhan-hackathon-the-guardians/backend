@@ -41,6 +41,7 @@ import com.shinhan_hackathon.the_family_guardian.domain.transaction.entity.Trans
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.repository.TransactionRepository;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.Role;
 import com.shinhan_hackathon.the_family_guardian.domain.user.entity.User;
+import com.shinhan_hackathon.the_family_guardian.domain.user.repository.UserRepository;
 import com.shinhan_hackathon.the_family_guardian.domain.user.service.UserService;
 import com.shinhan_hackathon.the_family_guardian.global.auth.dto.UserPrincipal;
 import com.shinhan_hackathon.the_family_guardian.global.event.PaymentApproveEvent;
@@ -67,6 +68,7 @@ public class TransactionService {
 	private final int TIMEOUT = 10;
 	private final NotificationResponseStatusRepository notificationResponseStatusRepository;
 	private final ObjectMapper jacksonObjectMapper;
+	private final UserRepository userRepository;
 
 	public List<TransactionResponse> getTransactionHistory(Long userId, Pageable pageable) {
 		log.info("TransactionService.getTransactionHistory() is called.");
@@ -473,7 +475,10 @@ public class TransactionService {
 		com.shinhan_hackathon.the_family_guardian.bank.dto.response.AccountBalanceResponse accountBalanceResponse =
 			accountService.inquireAccountBalance(accountBalanceRequest.accountNumber());
 
+		User user = userRepository.findByAccountNumber(accountBalanceRequest.accountNumber())
+			.orElseThrow(() -> new RuntimeException("User Not Found."));
 		return AccountBalanceResponse.builder()
+			.name(user.getName())
 			.accountNumber(accountBalanceResponse.getRec().getAccountNo())
 			.transactionBalance(accountBalanceResponse.getRec().getAccountBalance())
 			.build();
