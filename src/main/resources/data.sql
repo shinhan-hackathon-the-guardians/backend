@@ -171,12 +171,12 @@ INSERT IGNORE INTO transaction (id, approve_count, status, timestamp, transactio
 
 -- notification
 INSERT IGNORE INTO notification (id, requires_response, transaction_id, user_id, body, title, limit_type) VALUES
-(1, true, 16, 12, 'Transaction ID: 16\nType: TRANSFER\nAccount Number: 0889353847788050\nReceiver: 0889353847788050\nBalance: 650000', '결제 승인 요청', 'SINGLE_TRANSACTION_LIMIT'),
-(2, true, 17, 12, 'Transaction ID: 17\nType: TRANSFER\nAccount Number: 0889353847788050\nReceiver: 0889353847788050\nBalance: 700000', '결제 승인 요청', 'SINGLE_TRANSACTION_LIMIT'),
-(3, true, 18, 10, 'Transaction ID: 18\nType: PAYMENT\nAccount Number: 0889353847788048\nReceiver: 신미마라탕\nBalance: 120000', '결제 승인 요청', 'SINGLE_TRANSACTION_LIMIT'),
-(4, true, 19, 10, 'Transaction ID: 19\nType: TRANSFER\nAccount Number: 0889353847788048\nReceiver: 0889353847788048\nBalance: 300000', '결제 승인 요청', 'SINGLE_TRANSACTION_LIMIT'),
-(5, true, 20, 12, 'Transaction ID: 20\nType: TRANSFER\nAccount Number: 0889353847788050\nReceiver: 0889353847788050\nBalance: 700000', '결제 승인 요청', 'SINGLE_TRANSACTION_LIMIT'),
-(6, true, 21, 10, 'Transaction ID: 21\nType: TRANSFER\nAccount Number: 0889353847788048\nReceiver: 0889353847788048\nBalance: 200000', '결제 승인 요청', 'SINGLE_TRANSACTION_LIMIT');
+(1, true, 16, 12, '{ "notification_id": 1, "transaction_type": "TRANSFER", "sender_account_number": "0889353847788050", "receiver": "0889353847788050", "transaction_balance": 650000 }', '결제 승인 요청', 'SINGLE_TRANSACTION_LIMIT'),
+(2, true, 17, 12, '{ "notification_id": 2, "transaction_type": "TRANSFER", "sender_account_number": "0889353847788050", "receiver": "0889353847788050", "transaction_balance": 700000 }', '결제 승인 요청', 'SINGLE_TRANSACTION_LIMIT'),
+(3, true, 18, 10, '{ "notification_id": 3, "transaction_type": "PAYMENT", "sender_account_number": "0889353847788048", "receiver": "신미마라탕", "transaction_balance": 120000 }', '결제 승인 요청', 'SINGLE_TRANSACTION_LIMIT'),
+(4, true, 19, 10, '{ "notification_id": 4, "transaction_type": "TRANSFER", "sender_account_number": "0889353847788048", "receiver": "0889353847788048", "transaction_balance": 300000 }', '결제 승인 요청', 'SINGLE_TRANSACTION_LIMIT'),
+(5, true, 20, 12, '{ "notification_id": 5, "transaction_type": "TRANSFER", "sender_account_number": "0889353847788050", "receiver": "0889353847788050", "transaction_balance": 700000 }', '결제 승인 요청', 'SINGLE_TRANSACTION_LIMIT'),
+(6, true, 21, 10, '{ "notification_id": 6, "transaction_type": "TRANSFER", "sender_account_number": "0889353847788048", "receiver": "0889353847788048", "transaction_balance": 200000 }', '결제 승인 요청', 'SINGLE_TRANSACTION_LIMIT');
 
 -- notification_response_status
 INSERT IGNORE INTO notification_response_status (id, guardian_id, notification_id, response_status) VALUES
