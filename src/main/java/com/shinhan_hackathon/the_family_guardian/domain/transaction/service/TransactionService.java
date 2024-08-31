@@ -24,6 +24,8 @@ import com.shinhan_hackathon.the_family_guardian.domain.notification.entity.Resp
 import com.shinhan_hackathon.the_family_guardian.domain.notification.repository.NotificationResponseStatusRepository;
 import com.shinhan_hackathon.the_family_guardian.domain.notification.service.NotificationService;
 import com.shinhan_hackathon.the_family_guardian.domain.payment.service.PaymentLimitService;
+import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.AccountBalanceRequest;
+import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.AccountBalanceResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.DepositInfo;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.DepositRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.PaymentRequest;
@@ -457,5 +459,15 @@ public class TransactionService {
 	public Transaction findById(Long id) {
 		return transactionRepository.findById(id)
 			.orElseThrow(EntityNotFoundException::new);
+	}
+
+	public AccountBalanceResponse findByAccountNumber(AccountBalanceRequest accountBalanceRequest) {
+		com.shinhan_hackathon.the_family_guardian.bank.dto.response.AccountBalanceResponse accountBalanceResponse =
+			accountService.inquireAccountBalance(accountBalanceRequest.accountNumber());
+
+		return AccountBalanceResponse.builder()
+			.accountNumber(accountBalanceResponse.getRec().getAccountNo())
+			.transactionBalance(accountBalanceResponse.getRec().getAccountBalance())
+			.build();
 	}
 }
