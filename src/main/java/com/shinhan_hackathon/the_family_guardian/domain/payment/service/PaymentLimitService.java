@@ -48,8 +48,8 @@ public class PaymentLimitService {
 
         Integer singleTransactionLimit = paymentLimit.getSingleTransactionLimit();
 
-        // 단건 한도를 초과하면 False
-        return transactionBalance >= singleTransactionLimit;
+        // 단건 한도를 초과하면 false
+        return transactionBalance <= singleTransactionLimit;
     }
 
     @Transactional

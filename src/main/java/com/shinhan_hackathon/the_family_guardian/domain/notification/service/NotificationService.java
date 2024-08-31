@@ -53,16 +53,21 @@ public class NotificationService {
                 transactionInfo.transaction().getTransactionBalance()
         );
 
-        Notification notification = Notification.builder()
-                .user(transactionInfo.user())
-                .transaction(transactionInfo.transaction())
-                .limitType(transactionInfo.limitType())
-                .title("결제 승인 요청")
-                .body(notificationBody.toString())
-                .requiresResponse(true)
-                .build();
+        try {
+            String notificationBodyStr = jacksonObjectMapper.writeValueAsString(notificationBody);
+            Notification notification = Notification.builder()
+                    .user(transactionInfo.user())
+                    .transaction(transactionInfo.transaction())
+                    .limitType(transactionInfo.limitType())
+                    .title("결제 승인 요청")
+                    .body(notificationBodyStr)
+                    .requiresResponse(true)
+                    .build();
 
-        return notificationRepository.save(notification);
+            return notificationRepository.save(notification);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("fcm body를 만들지 못했습니다.");
+        }
     }
 
     @Transactional

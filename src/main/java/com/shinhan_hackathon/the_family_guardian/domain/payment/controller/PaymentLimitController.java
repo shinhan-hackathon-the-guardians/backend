@@ -20,7 +20,7 @@ public class PaymentLimitController {
 
     @PutMapping
     public ResponseEntity<UpdateLimitResponse> updateMemberLimit(@RequestBody UpdateLimitRequest updateLimitRequest) {
-        authUtil.checkAuthority(Role.OWNER);
+        authUtil.checkAuthority(Role.OWNER, Role.MANAGER);
 
         UpdateLimitResponse updateLimitResponse = paymentLimitService.manageMemberLimit(updateLimitRequest);
         return ResponseEntity.ok(updateLimitResponse);

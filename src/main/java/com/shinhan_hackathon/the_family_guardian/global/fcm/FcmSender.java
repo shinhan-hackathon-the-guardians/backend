@@ -60,7 +60,7 @@ public class FcmSender implements MessageSender {
 
     public void sendApprovalNotification(List<String> guardianDeviceTokenList, String body) {
         for (String deviceToken : guardianDeviceTokenList) {
-            sendMessage(deviceToken, "승인 요청", body);
+            sendMessage(deviceToken, "승인요청", body);
         }
     }
 

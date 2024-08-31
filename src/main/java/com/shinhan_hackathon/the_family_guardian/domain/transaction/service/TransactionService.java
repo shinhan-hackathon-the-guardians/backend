@@ -7,6 +7,8 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -62,6 +64,7 @@ public class TransactionService {
 	private final List<Role> familyGuardianRole = List.of(Role.MANAGER, Role.OWNER);
 	private final int TIMEOUT = 10;
 	private final NotificationResponseStatusRepository notificationResponseStatusRepository;
+	private final ObjectMapper jacksonObjectMapper;
 
 	public List<TransactionResponse> getTransactionHistory(Long userId, Pageable pageable) {
 		log.info("TransactionService.getTransactionHistory() is called.");
@@ -92,9 +95,14 @@ public class TransactionService {
 		// TODO: 입금 결과에 대한 알림
 		DepositInfo depositInfo =
 			new DepositInfo(user.getName(), user.getAccountNumber(), depositRequest.transactionBalance());
-		fcmSender.sendMessage(user.getDeviceToken(), "입금", depositInfo.toString());
 
-		log.info("Success to make a deposit.");
+		try {
+			fcmSender.sendMessage(user.getDeviceToken(), "입금", jacksonObjectMapper.writeValueAsString(depositInfo));
+		} catch (JsonProcessingException e) {
+            throw new RuntimeException("입금시 알림 메시지 Body 변환 실패");
+        }
+
+        log.info("Success to make a deposit.");
 	}
 
 	/*
