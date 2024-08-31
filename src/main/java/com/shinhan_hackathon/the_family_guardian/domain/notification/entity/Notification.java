@@ -51,4 +51,8 @@ public class Notification {
         this.body = body;
         this.requiresResponse = requiresResponse;
     }
+
+    public void setBody(String body) {
+        this.body = body;
+    }
 }

@@ -45,24 +45,28 @@ public class NotificationService {
     @Transactional
     public Notification saveNotification(TransactionInfo transactionInfo) {
 
-        NotificationBody notificationBody = new NotificationBody(
-                transactionInfo.transaction().getId(),
-                transactionInfo.transaction().getTransactionType(),
-                transactionInfo.user().getAccountNumber(),
-                transactionInfo.transaction().getReceiver(),
-                transactionInfo.transaction().getTransactionBalance()
-        );
+
 
         try {
-            String notificationBodyStr = jacksonObjectMapper.writeValueAsString(notificationBody);
             Notification notification = Notification.builder()
                     .user(transactionInfo.user())
                     .transaction(transactionInfo.transaction())
                     .limitType(transactionInfo.limitType())
                     .title("결제 승인 요청")
-                    .body(notificationBodyStr)
+                    .body("")
                     .requiresResponse(true)
                     .build();
+
+            NotificationBody notificationBody = new NotificationBody(
+                    notification.getId(),
+                    transactionInfo.transaction().getTransactionType(),
+                    transactionInfo.user().getAccountNumber(),
+                    transactionInfo.transaction().getReceiver(),
+                    transactionInfo.transaction().getTransactionBalance()
+            );
+            String notificationBodyStr = jacksonObjectMapper.writeValueAsString(notificationBody);
+
+            notification.setBody(notificationBodyStr);
 
             return notificationRepository.save(notification);
         } catch (JsonProcessingException e) {
