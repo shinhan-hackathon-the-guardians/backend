@@ -242,12 +242,20 @@ public class UserService {
 		log.info("UserService.getUserInfo() is called.");
 		User user = getUser(getUserId());
 
+		Long familyId = null;
+		String familyName = null;
+		Family family = user.getFamily();
+		if (family != null) {
+			familyId = family.getId();
+			familyName = family.getName();
+		}
+
 		return UserInfoResponse.builder()
 			.name(user.getName())
 			.level(user.getLevel())
 			.role(user.getRole())
-			.familyId(user.getFamily().getId())
-			.familyName(user.getFamily().getName())
+			.familyId(familyId)
+			.familyName(familyName)
 			.build();
 	}
 
