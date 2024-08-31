@@ -130,10 +130,16 @@ public class FcmSender implements MessageSender {
                 transactionBalance
         );
 
-        sendMessage(
-                deviceToken,
-                txName + (isSuccess ? " 성공" : " 실패"),
-                notificationBody.toString()
-        );
+        try {
+            String bodyStr = jacksonObjectMapper.writeValueAsString(notificationBody);
+            sendMessage(
+                    deviceToken,
+                    txName + (isSuccess ? " 성공" : " 실패"),
+                    bodyStr
+            );
+        } catch (JsonProcessingException e) {
+            log.info("body 파싱 실패");
+            throw new RuntimeException(e);
+        }
     }
 }
