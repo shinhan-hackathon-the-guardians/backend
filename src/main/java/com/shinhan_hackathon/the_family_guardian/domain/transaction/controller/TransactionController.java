@@ -1,5 +1,6 @@
 package com.shinhan_hackathon.the_family_guardian.domain.transaction.controller;
 
+import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.AccountBalanceResponse;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.DepositRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.PaymentRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.AccountBalanceRequest;
@@ -79,7 +80,7 @@ public class TransactionController {
 
 	// TODO: 잔액 조회
 	@PostMapping("/balance")
-	public ResponseEntity<?> getTransactionBalance(@RequestBody AccountBalanceRequest accountBalanceRequest) {
+	public ResponseEntity<AccountBalanceResponse> getTransactionBalance(@RequestBody AccountBalanceRequest accountBalanceRequest) {
 		log.info("TransactionController.getTransactionBalance() is called.");
 
 		return ResponseEntity.ok(transactionService.findByAccountNumber(accountBalanceRequest));
