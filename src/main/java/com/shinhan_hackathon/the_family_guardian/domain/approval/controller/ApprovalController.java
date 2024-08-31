@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/approval")
 @RequiredArgsConstructor
@@ -16,7 +18,7 @@ public class ApprovalController {
     private final ApprovalService approvalService;
 
     @GetMapping
-    public ResponseEntity<ApprovalInfoResponse> searchApproval() {
+    public ResponseEntity<List<ApprovalInfoResponse>> searchApproval() {
         return ResponseEntity.ok(approvalService.getApproval());
     }
 
