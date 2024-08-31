@@ -16,6 +16,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -52,18 +53,22 @@ public class ApprovalService {
         return approval.getId();
     }
 
-    public ApprovalInfoResponse getApproval() {
+    public List<ApprovalInfoResponse> getApproval() {
         User user = authUtil.getUserPrincipal().user();
-        Approval approval = approvalRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("초대가 없습니다."));
-        Family family = approval.getFamily();
 
-        return new ApprovalInfoResponse(
-                approval.getId(),
-                family.getId(),
-                family.getName(),
-                family.getDescription()
-        );
+        List<Approval> approvalList = approvalRepository.findAllByUserAndAccepted(user, AcceptStatus.PROGRESS);
+
+        List<ApprovalInfoResponse> approvalInfoResponseList = approvalList.stream().map(approval -> {
+            Family family = approval.getFamily();
+            return new ApprovalInfoResponse(
+                    approval.getId(),
+                    family.getId(),
+                    family.getName(),
+                    family.getDescription()
+            );
+        }).toList();
+
+        return approvalInfoResponseList;
     }
 
     @Transactional
