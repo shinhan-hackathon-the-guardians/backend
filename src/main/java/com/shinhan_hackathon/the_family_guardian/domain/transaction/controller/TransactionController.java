@@ -2,16 +2,15 @@ package com.shinhan_hackathon.the_family_guardian.domain.transaction.controller;
 
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.DepositRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.PaymentRequest;
+import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.AccountBalanceRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.TransferRequest;
 import com.shinhan_hackathon.the_family_guardian.domain.transaction.dto.WithdrawalRequest;
-import com.shinhan_hackathon.the_family_guardian.global.auth.dto.UserPrincipal;
+
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -76,5 +75,14 @@ public class TransactionController {
 		transactionService.updatePayment(paymentRequest);
 
 		return ResponseEntity.ok().build();
+	}
+
+	// TODO: 잔액 조회
+	@PostMapping("/balance")
+	public ResponseEntity<?> getTransactionBalance(@RequestBody AccountBalanceRequest accountBalanceRequest) {
+		log.info("TransactionController.getTransactionBalance() is called.");
+
+		return ResponseEntity.ok(transactionService.findByAccountNumber(accountBalanceRequest));
+
 	}
 }
